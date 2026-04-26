@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radisist - Medical AI Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; }
+        .drop-zone { border: 2px dashed #475569; transition: all 0.3s; }
+        .drop-zone.dragover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .prob-bar { transition: width 0.5s ease; }
+        .spinner { border: 3px solid #1e293b; border-top: 3px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-high { background: #dc2626; color: white; }
+        .badge-medium { background: #f59e0b; color: #1e293b; }
+        .badge-low { background: #22c55e; color: #1e293b; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+        .tab-active { border-bottom: 2px solid #3b82f6; color: #3b82f6; }
+        .tab-inactive { border-bottom: 2px solid transparent; color: #94a3b8; }
+        .tab-inactive:hover { color: #e2e8f0; }
+        .sample-thumb { width: 56px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid #334155; cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
+        .sample-thumb:hover { transform: scale(1.08); border-color: #3b82f6; }
+
+        /* Segmentation hover overlay */
+        .seg-stack { position: relative; display: block; }
+        .seg-stack img { display: block; width: 100%; border-radius: 0.5rem; border: 1px solid #475569; }
+        .seg-stack .seg-overlay-img { position: absolute; inset: 0; opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
+        .seg-stack:hover .seg-overlay-img { opacity: 1; }
+        .seg-stack .seg-hint { position: absolute; bottom: 8px; right: 8px; background: rgba(15,23,42,0.85); color: #cbd5e1; font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; pointer-events: none; transition: opacity 0.2s; }
+        .seg-stack:hover .seg-hint { opacity: 0; }
+
+        /* Report card */
+        .report-section { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 16px; }
+        .report-section h5 { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 12px; }
+        .report-section h5 .dot { width: 6px; height: 6px; border-radius: 9999px; background: #3b82f6; }
+        .finding-row { display: flex; gap: 12px; padding: 12px; background: #1e293b; border-left: 3px solid #475569; border-radius: 6px; }
+        .finding-row.severity-high { border-left-color: #dc2626; }
+        .finding-row.severity-medium { border-left-color: #f59e0b; }
+        .finding-row.severity-low { border-left-color: #22c55e; }
+        .conf-pill { font-size: 0.7rem; padding: 2px 8px; border-radius: 9999px; background: rgba(59,130,246,0.15); color: #93c5fd; font-weight: 500; white-space: nowrap; }
+        .citation { display: inline-block; font-size: 0.7rem; color: #60a5fa; background: rgba(59,130,246,0.1); padding: 2px 8px; border-radius: 4px; margin-top: 4px; }
+        .reasoning-step { padding: 10px 12px; background: #1e293b; border-radius: 6px; }
+        .reasoning-step .label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+
+        /* 5-step reasoning */
+        .step-card { display: flex; gap: 14px; padding: 14px; background: #1e293b; border: 1px solid #334155; border-radius: 10px; }
+        .step-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 9999px; background: #0f172a; color: #60a5fa; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; border: 1px solid #1e3a8a; }
+        .step-name { font-weight: 600; color: #e2e8f0; display: flex; align-items: center; gap: 6px; }
+        .step-check { color: #22c55e; }
+        .tool-badge { display: inline-block; font-size: 0.7rem; background: rgba(96,165,250,0.12); color: #93c5fd; padding: 2px 8px; border-radius: 4px; margin-top: 4px; font-family: ui-monospace, monospace; }
+        .step-lead { color: #94a3b8; font-size: 0.875rem; margin-top: 8px; font-style: italic; }
+        .step-text { color: #e2e8f0; font-size: 0.875rem; margin-top: 4px; line-height: 1.55; }
+
+        /* Findings as bullet list */
+        .finding-bullet { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #1e293b; cursor: pointer; transition: background 0.15s; border-radius: 4px; }
+        .finding-bullet:hover { background: rgba(59,130,246,0.05); padding-left: 8px; }
+        .finding-bullet.active { background: rgba(59,130,246,0.12); padding-left: 8px; border-bottom-color: #3b82f6; }
+        .finding-bullet:last-child { border-bottom: none; }
+        .finding-dot { flex-shrink: 0; width: 6px; height: 6px; border-radius: 9999px; background: #64748b; margin-top: 8px; }
+        .finding-bullet.active .finding-dot { background: #3b82f6; }
+
+        /* Heatmap legend */
+        .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: #cbd5e1; }
+        .legend-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header -->
+    <header class="border-b border-slate-700 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Radisist</h1>
+                <p class="text-sm text-slate-400">Medical AI Orchestration Platform</p>
+            </div>
+            <div id="health-status" class="text-xs text-slate-500">Checking...</div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Upload Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="lg:col-span-2">
+                <div id="drop-zone" class="drop-zone card p-8 text-center cursor-pointer min-h-[200px] flex flex-col items-center justify-center"
+                     onclick="document.getElementById('file-input').click()">
+                    <svg class="w-12 h-12 text-slate-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <p class="text-slate-300 font-medium">Drop medical image here or click to upload</p>
+                    <p class="text-slate-500 text-sm mt-1">Supports JPEG, PNG, DICOM</p>
+                    <input id="file-input" type="file" accept="image/*,.dcm" class="hidden" onchange="handleFile(this.files[0])">
+                </div>
+                <!-- Preview -->
+                <div id="preview-section" class="hidden mt-4 card p-4">
+                    <div class="flex items-center gap-4">
+                        <img id="preview-img" class="w-32 h-32 object-cover rounded-lg border border-slate-600" />
+                        <div>
+                            <p id="preview-name" class="font-medium text-white"></p>
+                            <p id="preview-size" class="text-sm text-slate-400"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="card p-6">
+                <h3 class="font-semibold text-white mb-4">Analysis Controls</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Routing Mode</label>
+                        <select id="routing-mode" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm">
+                            <option value="auto">Auto-Route (Recommended)</option>
+                            <option value="manual">Manual Specialist</option>
+                        </select>
+                    </div>
+                    <div id="manual-select" class="hidden">
+                        <label class="block text-sm text-slate-400 mb-1">Select Specialist</label>
+                        <select id="disease-select" class="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm">
+                            <option value="">-- Select --</option>
+                            <option value="endoscopy">GI / Endoscopy</option>
+                            <option value="dermatology">Dermatology</option>
+                            <option value="chest_xray">Chest X-Ray</option>
+                            <option value="breast_ultrasound">Breast Ultrasound</option>
+                            <option value="mammography">Mammography</option>
+                            <option value="thyroid_ultrasound">Thyroid Ultrasound</option>
+                            <option value="fundus_retinography">Fundus / Retinal</option>
+                            <option value="microscopy">Microscopy</option>
+                        </select>
+                    </div>
+                    <button id="analyze-btn" onclick="runAnalysis()" disabled
+                        class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium py-3 rounded-lg transition">
+                        Analyze Image
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample Gallery -->
+        <div id="samples-section" class="card p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-semibold text-white">Sample Images</h3>
+                    <p class="text-sm text-slate-400">Click any thumbnail to load it for analysis</p>
+                </div>
+                <button onclick="document.getElementById('samples-body').classList.toggle('hidden')"
+                        class="text-xs text-slate-400 hover:text-white">Toggle</button>
+            </div>
+            <div id="samples-body" class="space-y-3">
+                <p class="text-slate-500 text-sm">Loading samples...</p>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden card p-8 text-center mb-8">
+            <div class="spinner mx-auto mb-4"></div>
+            <p id="loading-text" class="text-slate-300">Processing image through pipeline...</p>
+            <p class="text-slate-500 text-sm mt-1">This may take 30-60 seconds on first run</p>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden space-y-6">
+            <!-- Routing Result -->
+            <div class="card p-6">
+                <h3 class="font-semibold text-white mb-3 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                    </svg>
+                    Modality Routing
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-slate-400 text-sm">Detected Modality</p>
+                        <p id="res-modality" class="text-xl font-bold text-white"></p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Confidence</p>
+                        <p id="res-router-conf" class="text-xl font-bold"></p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Specialist</p>
+                        <p id="res-specialist" class="text-lg text-white"></p>
+                    </div>
+                </div>
+                <!-- Top 3 -->
+                <div id="res-top3" class="mt-4 flex gap-2 flex-wrap"></div>
+                <!-- Ultrasound sub-routing -->
+                <div id="ultrasound-options" class="hidden mt-4 p-3 bg-slate-800 rounded-lg">
+                    <p class="text-sm text-amber-400 mb-2">Ultrasound detected - please specify type:</p>
+                    <div class="flex gap-2" id="us-buttons"></div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="card">
+                <div class="flex border-b border-slate-700 px-6" id="result-tabs">
+                    <button onclick="switchTab('classification')" class="px-4 py-3 text-sm font-medium tab-active" data-tab="classification">Classification</button>
+                    <button onclick="switchTab('segmentation')" class="px-4 py-3 text-sm font-medium tab-inactive" data-tab="segmentation">Segmentation</button>
+                    <button onclick="switchTab('xai')" class="px-4 py-3 text-sm font-medium tab-inactive" data-tab="xai">Explainability</button>
+                    <button onclick="switchTab('report')" class="px-4 py-3 text-sm font-medium tab-inactive" data-tab="report">Report</button>
+                    <button onclick="switchTab('audit')" class="px-4 py-3 text-sm font-medium tab-inactive" data-tab="audit">Audit Trail</button>
+                </div>
+
+                <!-- Classification Tab -->
+                <div id="tab-classification" class="p-6">
+                    <h4 class="font-semibold text-white mb-4">Disease Classification</h4>
+                    <div id="cls-results" class="space-y-3"></div>
+                </div>
+
+                <!-- Segmentation Tab -->
+                <div id="tab-segmentation" class="p-6 hidden">
+                    <h4 class="font-semibold text-white mb-4">Segmentation Results</h4>
+                    <p class="text-sm text-slate-400 mb-3">Hover the image to reveal the predicted mask overlay.</p>
+                    <div class="max-w-md">
+                        <div class="seg-stack">
+                            <img id="seg-original" alt="Original" />
+                            <img id="seg-overlay" class="seg-overlay-img" alt="Overlay" />
+                            <span id="seg-hint" class="seg-hint">Hover to reveal mask</span>
+                        </div>
+                    </div>
+                    <div id="seg-regions" class="mt-4"></div>
+                </div>
+
+                <!-- XAI Tab -->
+                <div id="tab-xai" class="p-6 hidden">
+                    <h4 class="font-semibold text-white mb-4">Grad-CAM++ Explainability</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-slate-400 mb-2">Original Image</p>
+                            <img id="xai-original" class="w-full rounded-lg border border-slate-600" />
+                        </div>
+                        <div>
+                            <p class="text-sm text-slate-400 mb-2">Attention Heatmap</p>
+                            <img id="xai-heatmap" class="w-full rounded-lg border border-slate-600" />
+                            <p id="xai-error" class="text-red-400 text-sm mt-2 hidden"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Tab -->
+                <div id="tab-report" class="p-6 hidden">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-semibold text-white">Clinical Report</h4>
+                        <span id="report-provider" class="badge bg-slate-700 text-slate-300"></span>
+                    </div>
+                    <div id="report-error" class="hidden text-red-400 text-sm mb-4"></div>
+                    <div id="report-content" class="space-y-4"></div>
+                </div>
+
+                <!-- Audit Trail Tab -->
+                <div id="tab-audit" class="p-6 hidden">
+                    <h4 class="font-semibold text-white mb-4">Pipeline Audit Trail</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-slate-400 border-b border-slate-700">
+                                    <th class="text-left py-2 pr-4">Step</th>
+                                    <th class="text-left py-2 pr-4">Tool</th>
+                                    <th class="text-left py-2 pr-4">Latency</th>
+                                    <th class="text-left py-2">Output</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 text-sm text-slate-400">
+                        <span>Total latency: <strong id="total-latency" class="text-white"></strong></span>
+                        <span class="ml-4">Report ID: <code id="report-id" class="text-slate-300"></code></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    let currentFile = null;
+    let lastResult = null;
+
+    // Routing mode toggle
+    document.getElementById('routing-mode').addEventListener('change', (e) => {
+        document.getElementById('manual-select').classList.toggle('hidden', e.target.value === 'auto');
+    });
+
+    // Drag and drop
+    const dropZone = document.getElementById('drop-zone');
+    ['dragenter','dragover'].forEach(e => dropZone.addEventListener(e, (ev) => { ev.preventDefault(); dropZone.classList.add('dragover'); }));
+    ['dragleave','drop'].forEach(e => dropZone.addEventListener(e, (ev) => { ev.preventDefault(); dropZone.classList.remove('dragover'); }));
+    dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+
+    function handleFile(file) {
+        if (!file) return;
+        currentFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('preview-name').textContent = file.name;
+            document.getElementById('preview-size').textContent = (file.size / 1024).toFixed(1) + ' KB';
+            document.getElementById('preview-section').classList.remove('hidden');
+            document.getElementById('analyze-btn').disabled = false;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    async function runAnalysis() {
+        if (!currentFile) return;
+        const btn = document.getElementById('analyze-btn');
+        btn.disabled = true;
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('results').classList.add('hidden');
+
+        const formData = new FormData();
+        formData.append('file', currentFile);
+
+        const mode = document.getElementById('routing-mode').value;
+        if (mode === 'manual') {
+            const disease = document.getElementById('disease-select').value;
+            if (disease) formData.append('force_disease', disease);
+        }
+
+        try {
+            const resp = await fetch('/api/analyze', { method: 'POST', body: formData });
+            if (!resp.ok) throw new Error(await resp.text());
+            lastResult = await resp.json();
+            displayResults(lastResult);
+        } catch (e) {
+            alert('Analysis failed: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            document.getElementById('loading').classList.add('hidden');
+        }
+    }
+
+    function displayResults(r) {
+        document.getElementById('results').classList.remove('hidden');
+
+        // Routing
+        document.getElementById('res-modality').textContent = r.routing.modality;
+        const conf = r.routing.confidence;
+        const confEl = document.getElementById('res-router-conf');
+        confEl.textContent = (conf * 100).toFixed(1) + '%';
+        confEl.className = 'text-xl font-bold ' + (conf > 0.9 ? 'text-green-400' : conf > 0.75 ? 'text-amber-400' : 'text-red-400');
+
+        const specialist = r.classification?.disease || r.disease_model || '';
+        document.getElementById('res-specialist').textContent = specialist.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+        // Top 3
+        const top3El = document.getElementById('res-top3');
+        top3El.innerHTML = r.routing.top3.map(t =>
+            `<span class="px-3 py-1 rounded-full text-xs ${t === r.routing.top3[0] ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300'}">${t.class} (${(t.confidence * 100).toFixed(1)}%)</span>`
+        ).join('');
+
+        // Ultrasound sub-routing
+        if (r.ultrasound_options && r.ultrasound_options.length > 1) {
+            document.getElementById('ultrasound-options').classList.remove('hidden');
+            document.getElementById('us-buttons').innerHTML = r.ultrasound_options.map(d =>
+                `<button onclick="rerunWithDisease('${d}')" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm">${d.replace(/_/g, ' ')}</button>`
+            ).join('');
+        } else {
+            document.getElementById('ultrasound-options').classList.add('hidden');
+        }
+
+        // Classification
+        displayClassification(r.classification);
+
+        // Segmentation
+        displaySegmentation(r);
+
+        // XAI
+        displayXAI(r);
+
+        // Report
+        displayReport(r);
+
+        // Audit
+        displayAudit(r);
+
+        switchTab('classification');
+    }
+
+    function displayClassification(cls) {
+        const el = document.getElementById('cls-results');
+        if (!cls) { el.innerHTML = '<p class="text-slate-400">No classification results</p>'; return; }
+        el.innerHTML = cls.predictions.map(p => `
+            <div class="flex items-center gap-3">
+                <span class="w-40 text-sm text-slate-300 truncate">${p.class}</span>
+                <div class="flex-1 bg-slate-800 rounded-full h-5 overflow-hidden">
+                    <div class="prob-bar h-full rounded-full ${p.probability > 0.7 ? 'bg-blue-500' : p.probability > 0.4 ? 'bg-amber-500' : 'bg-slate-600'}"
+                         style="width: ${(p.probability * 100).toFixed(1)}%"></div>
+                </div>
+                <span class="text-sm font-mono text-slate-300 w-16 text-right">${(p.probability * 100).toFixed(1)}%</span>
+            </div>
+        `).join('');
+    }
+
+    function displaySegmentation(r) {
+        document.getElementById('seg-original').src = r.original_image ? 'data:image/png;base64,' + r.original_image : '';
+        if (r.segmentation_overlay) {
+            document.getElementById('seg-overlay').src = 'data:image/png;base64,' + r.segmentation_overlay;
+        } else {
+            document.getElementById('seg-overlay').src = '';
+        }
+        const regEl = document.getElementById('seg-regions');
+        if (r.segmentation && r.segmentation.regions && r.segmentation.regions.length > 0) {
+            regEl.innerHTML = '<p class="text-sm text-slate-400 mb-2">' + r.segmentation.num_regions + ' region(s) detected</p>' +
+                r.segmentation.regions.map(reg => `
+                    <div class="inline-block mr-2 mb-2 px-3 py-1 bg-slate-800 rounded text-xs text-slate-300">
+                        Region ${reg.id}: ${reg.bbox.width}x${reg.bbox.height}px, area=${reg.area_pixels}px
+                    </div>`).join('');
+        } else {
+            regEl.innerHTML = '<p class="text-slate-400 text-sm">No segmentation available for this modality</p>';
+        }
+    }
+
+    function displayXAI(r) {
+        document.getElementById('xai-original').src = r.original_image ? 'data:image/png;base64,' + r.original_image : '';
+        if (r.xai_heatmap) {
+            document.getElementById('xai-heatmap').src = 'data:image/png;base64,' + r.xai_heatmap;
+            document.getElementById('xai-error').classList.add('hidden');
+        } else {
+            document.getElementById('xai-heatmap').src = '';
+            if (r.xai_error) {
+                document.getElementById('xai-error').textContent = r.xai_error;
+                document.getElementById('xai-error').classList.remove('hidden');
+            }
+        }
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function fmtConfidence(v) {
+        if (v == null) return null;
+        if (typeof v === 'number') return (v * 100).toFixed(1) + '%';
+        return String(v);
+    }
+
+    const STEP_ORDER = [
+        { key: 'selecting',         name: 'Selecting',        defaultTool: 'ModelSelector' },
+        { key: 'observing',         name: 'Observing',        defaultTool: 'ImagePreprocessor' },
+        { key: 'analyzing',         name: 'Analyzing',        defaultTool: 'GradCAM' },
+        { key: 'cross_referencing', name: 'Cross-referencing',defaultTool: 'PatchAnalyzer' },
+        { key: 'weighing',          name: 'Weighing',         defaultTool: 'SemanticReasoner' },
+    ];
+
+    const LEGEND_COLORS = { red: '#ef4444', orange: '#f97316', yellow: '#eab308', blue: '#3b82f6' };
+    const DEFAULT_LEGEND = [
+        { label: 'High attention areas', color: 'red' },
+        { label: 'Moderate attention',   color: 'orange' },
+        { label: 'Supporting regions',   color: 'yellow' },
+        { label: 'Contextual areas',     color: 'blue' },
+    ];
+
+    function normalizeStep(stepData, fallbackTool) {
+        if (!stepData) return null;
+        if (typeof stepData === 'string') return { tool: fallbackTool, lead: '', text: stepData };
+        return {
+            tool: stepData.tool || fallbackTool,
+            lead: stepData.lead || '',
+            text: stepData.text || stepData.description || '',
+        };
+    }
+
+    function renderHeatmap(findingText) {
+        const heatmap = lastResult?.xai_heatmap;
+        const previewEl = document.getElementById('heatmap-finding-text');
+        const imgEl = document.getElementById('heatmap-img');
+        if (previewEl) previewEl.textContent = findingText || '—';
+        if (imgEl) {
+            if (heatmap) {
+                imgEl.src = 'data:image/png;base64,' + heatmap;
+                imgEl.classList.remove('hidden');
+            } else {
+                imgEl.classList.add('hidden');
+            }
+        }
+    }
+
+    function selectFinding(idx) {
+        document.querySelectorAll('.finding-bullet').forEach((el, i) => el.classList.toggle('active', i === idx));
+        const findings = lastResult?.report?.key_findings || [];
+        const f = findings[idx];
+        renderHeatmap(f ? (f.finding || f.text || '') : '');
+    }
+
+    function displayReport(r) {
+        document.getElementById('report-provider').textContent = r.report_provider ? 'via ' + r.report_provider : '';
+        const errEl = document.getElementById('report-error');
+        const contentEl = document.getElementById('report-content');
+
+        if (r.report_error) {
+            errEl.textContent = r.report_error;
+            errEl.classList.remove('hidden');
+            contentEl.innerHTML = '';
+            return;
+        }
+        errEl.classList.add('hidden');
+
+        if (!r.report) {
+            contentEl.innerHTML = '<p class="text-slate-400">No report generated</p>';
+            return;
+        }
+
+        const report = r.report;
+        let html = '';
+
+        // Header strip
+        const priority = report.priority || '';
+        const pc = priority.toLowerCase();
+        html += `<div class="flex items-center justify-between flex-wrap gap-3 mb-4 pb-4 border-b border-slate-700">
+            <div class="flex items-center gap-3">
+                ${priority ? `<span class="badge badge-${pc}">${escapeHtml(priority)} Priority</span>` : ''}
+                <span class="text-xs text-slate-500">Generated by ${escapeHtml(r.report_provider || 'LLM')}</span>
+            </div>
+            ${report.pipeline_applied && report.pipeline_applied.length ? `
+                <div class="flex flex-wrap gap-1.5">
+                    ${report.pipeline_applied.map(p => `<span class="text-xs bg-slate-800 text-slate-300 px-2 py-1 rounded">${escapeHtml(p)}</span>`).join('')}
+                </div>` : ''}
+        </div>`;
+
+        // Summary
+        if (report.summary) {
+            html += `<div class="report-section mb-4">
+                <h5><span class="dot" style="background:#3b82f6"></span>Summary</h5>
+                <p class="text-slate-200 leading-relaxed">${escapeHtml(report.summary)}</p>
+            </div>`;
+        }
+
+        // 5-step AI Reasoning Process
+        const reasoning = report.ai_reasoning_process || {};
+        const steps = STEP_ORDER.map(meta => ({ meta, data: normalizeStep(reasoning[meta.key], meta.defaultTool) }));
+        if (steps.some(s => s.data)) {
+            html += `<div class="report-section mb-4">
+                <h5><span class="dot" style="background:#a855f7"></span>AI Reasoning Process</h5>
+                <div class="space-y-3">`;
+            steps.forEach((s, i) => {
+                if (!s.data) return;
+                html += `<div class="step-card">
+                    <div class="step-num">${i + 1}</div>
+                    <div class="flex-1">
+                        <div class="step-name">${escapeHtml(s.meta.name)} <span class="step-check">✓</span></div>
+                        <span class="tool-badge">${escapeHtml(s.data.tool)}</span>
+                        ${s.data.lead ? `<p class="step-lead">${escapeHtml(s.data.lead)}</p>` : ''}
+                        ${s.data.text ? `<p class="step-text">${escapeHtml(s.data.text)}</p>` : ''}
+                    </div>
+                </div>`;
+            });
+            html += `</div></div>`;
+        }
+
+        // Key Findings (clickable)
+        if (report.key_findings && report.key_findings.length) {
+            html += `<div class="report-section mb-4">
+                <h5><span class="dot" style="background:#f59e0b"></span>Key Findings</h5>
+                <div>`;
+            report.key_findings.forEach((f, i) => {
+                const text = f.finding || f.text || JSON.stringify(f);
+                const conf = fmtConfidence(f.confidence);
+                html += `<div class="finding-bullet ${i === 0 ? 'active' : ''}" onclick="selectFinding(${i})">
+                    <span class="finding-dot"></span>
+                    <div class="flex-1">
+                        <p class="text-slate-200 text-sm">${escapeHtml(text)}</p>
+                        ${(f.location && f.location !== 'unknown') || conf ? `
+                            <div class="flex items-center gap-3 mt-1">
+                                ${f.location && f.location !== 'unknown' ? `<span class="text-xs text-slate-400">📍 ${escapeHtml(f.location)}</span>` : ''}
+                                ${conf ? `<span class="conf-pill">${conf}</span>` : ''}
+                            </div>` : ''}
+                    </div>
+                </div>`;
+            });
+            html += `</div></div>`;
+        }
+
+        // AI Focus Areas (heatmap)
+        const focus = report.ai_focus_areas || {};
+        const legend = focus.legend && focus.legend.length ? focus.legend : DEFAULT_LEGEND;
+        const focusNote = focus.note || 'Heatmap shows areas relevant to each finding. Click on different findings above to see their specific visualizations.';
+        html += `<div class="report-section mb-4">
+            <h5><span class="dot" style="background:#ef4444"></span>AI Focus Areas</h5>
+            <p class="text-xs text-slate-400 mb-3">Selected heatmap preview and finding context.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs text-slate-400 mb-1">Viewing heatmap for:</p>
+                    <p id="heatmap-finding-text" class="text-sm text-slate-200 italic mb-3">—</p>
+                    <p class="text-xs font-semibold text-slate-300 mb-2">Heatmap Legend</p>
+                    <div class="space-y-1.5 mb-3">
+                        ${legend.map(l => `
+                            <div class="legend-item">
+                                <span class="legend-swatch" style="background: ${LEGEND_COLORS[l.color] || l.color || '#3b82f6'}"></span>
+                                <span>${escapeHtml(l.label)}</span>
+                            </div>`).join('')}
+                    </div>
+                    <p class="text-xs text-slate-500">${escapeHtml(focusNote)}</p>
+                </div>
+                <div>
+                    <img id="heatmap-img" class="w-full rounded-lg border border-slate-600 hidden" alt="Heatmap" />
+                    <p id="heatmap-missing" class="text-xs text-slate-500 ${r.xai_heatmap ? 'hidden' : ''}">Heatmap unavailable</p>
+                </div>
+            </div>
+        </div>`;
+
+        // Next Actions
+        if (report.next_actions || (report.clinical_recommendations && report.clinical_recommendations.length)) {
+            html += `<div class="report-section mb-4">
+                <h5><span class="dot" style="background:#22c55e"></span>Next Actions / Clinical Recommendation</h5>`;
+            if (report.next_actions) {
+                html += `<p class="text-slate-200 leading-relaxed mb-3">${escapeHtml(report.next_actions)}</p>`;
+            }
+            if (report.clinical_recommendations && report.clinical_recommendations.length) {
+                html += `<ol class="space-y-2 list-decimal pl-5 marker:text-slate-500">`;
+                report.clinical_recommendations.forEach(rec => {
+                    const text = rec.recommendation || rec.text || JSON.stringify(rec);
+                    html += `<li class="text-slate-200 pl-2">
+                        <span class="text-sm">${escapeHtml(text)}</span>
+                        ${rec.citation ? `<div class="citation">📚 ${escapeHtml(rec.citation)}</div>` : ''}
+                    </li>`;
+                });
+                html += `</ol>`;
+            }
+            html += `</div>`;
+        }
+
+        // Raw JSON toggle
+        html += `<div class="mt-4">
+            <button onclick="document.getElementById('raw-json').classList.toggle('hidden')" class="text-xs text-slate-500 hover:text-slate-300">Toggle Raw JSON</button>
+            <pre id="raw-json" class="hidden mt-2 bg-slate-800 p-4 rounded-lg text-xs text-slate-300 overflow-auto max-h-96">${escapeHtml(JSON.stringify(report, null, 2))}</pre>
+        </div>`;
+
+        contentEl.innerHTML = html;
+
+        // Wire up the first finding's heatmap by default
+        const firstFinding = report.key_findings && report.key_findings[0];
+        renderHeatmap(firstFinding ? (firstFinding.finding || firstFinding.text || '') : '');
+    }
+
+    function displayAudit(r) {
+        const tbody = document.getElementById('audit-body');
+        tbody.innerHTML = r.audit_trail.map(a => `
+            <tr class="border-b border-slate-800">
+                <td class="py-2 pr-4 text-slate-300">${a.step}</td>
+                <td class="py-2 pr-4 text-slate-300">${a.tool}</td>
+                <td class="py-2 pr-4 font-mono text-slate-400">${a.latency_ms ? a.latency_ms + 'ms' : a.error || '-'}</td>
+                <td class="py-2 text-slate-400 text-xs">${a.output || a.error || ''}</td>
+            </tr>
+        `).join('');
+        document.getElementById('total-latency').textContent = r.total_latency_ms + 'ms';
+        document.getElementById('report-id').textContent = r.report_id;
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('[data-tab]').forEach(btn => {
+            btn.className = 'px-4 py-3 text-sm font-medium ' + (btn.dataset.tab === tab ? 'tab-active' : 'tab-inactive');
+        });
+        ['classification','segmentation','xai','report','audit'].forEach(t => {
+            document.getElementById('tab-' + t).classList.toggle('hidden', t !== tab);
+        });
+    }
+
+    async function rerunWithDisease(disease) {
+        if (!currentFile) return;
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('results').classList.add('hidden');
+        const formData = new FormData();
+        formData.append('file', currentFile);
+        formData.append('force_disease', disease);
+        try {
+            const resp = await fetch('/api/analyze', { method: 'POST', body: formData });
+            if (!resp.ok) throw new Error(await resp.text());
+            lastResult = await resp.json();
+            displayResults(lastResult);
+        } catch (e) { alert('Re-analysis failed: ' + e.message); }
+        finally { document.getElementById('loading').classList.add('hidden'); }
+    }
+
+    // Health check
+    fetch('/api/health').then(r => r.json()).then(d => {
+        document.getElementById('health-status').innerHTML = '<span class="text-green-400">&#9679;</span> Online';
+    }).catch(() => {
+        document.getElementById('health-status').innerHTML = '<span class="text-red-400">&#9679;</span> Offline';
+    });
+
+    // Load sample gallery
+    async function loadSamples() {
+        const body = document.getElementById('samples-body');
+        try {
+            const r = await fetch('/api/samples?limit=5');
+            const data = await r.json();
+            if (!data.diseases || data.diseases.length === 0) {
+                body.innerHTML = '<p class="text-slate-500 text-sm">No samples available yet.</p>';
+                return;
+            }
+            body.innerHTML = data.diseases.map(d => `
+                <div class="border border-slate-700 rounded-lg p-3 flex items-center gap-4">
+                    <div class="w-48 shrink-0">
+                        <p class="font-medium text-white">${d.disease.replace(/_/g, ' ')}</p>
+                        <p class="text-xs text-slate-500">${d.specialist}</p>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        ${d.thumbnails.map(url => `
+                            <img src="${url}" class="sample-thumb" onclick="loadSampleUrl('${url}')" alt="${d.disease}" />
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            body.innerHTML = '<p class="text-red-400 text-sm">Failed to load samples: ' + e.message + '</p>';
+        }
+    }
+
+    async function loadSampleUrl(url) {
+        try {
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('Failed to fetch sample');
+            const blob = await resp.blob();
+            const filename = url.split('/').pop();
+            const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+            handleFile(file);
+            // scroll up to upload area so user sees the loaded preview
+            document.getElementById('drop-zone').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {
+            alert('Could not load sample: ' + e.message);
+        }
+    }
+
+    loadSamples();
+    </script>
+</body>
+</html>

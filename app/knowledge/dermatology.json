@@ -1,0 +1,22 @@
+{
+  "domain": "dermatology",
+  "guidelines": [
+    {
+      "source": "AAD 2019 — Guidelines of Care for the Management of Primary Cutaneous Melanoma",
+      "condition": "malignant",
+      "passages": [
+        "Dermoscopic features suggestive of melanoma include asymmetry of structures, atypical pigment network, blue-white veil, irregular dots or globules, regression structures, and atypical vascular patterns. The ABCDE criteria (Asymmetry, Border irregularity, Color variegation, Diameter >6 mm, Evolving) remain a useful clinical screening tool for pigmented lesions.",
+        "Any lesion clinically or dermoscopically suspicious for melanoma should undergo excisional biopsy with 1–3 mm margins. Shave biopsy is discouraged for suspected melanoma as it may compromise Breslow thickness measurement. Sentinel lymph node biopsy should be discussed for melanomas with Breslow thickness ≥0.8 mm or those <0.8 mm with ulceration or high mitotic rate.",
+        "Non-melanoma skin cancers (basal cell carcinoma, squamous cell carcinoma) should be assessed for high-risk features including size >2 cm, poorly defined borders, recurrence, immunosuppression, perineural invasion, and location on the head or neck. Mohs micrographic surgery is recommended for high-risk non-melanoma skin cancers."
+      ]
+    },
+    {
+      "source": "BAD 2021 — Guidelines for the Management of Benign Skin Lesions",
+      "condition": "non_malignant",
+      "passages": [
+        "Common benign skin lesions include seborrheic keratoses, dermatofibromas, benign melanocytic naevi, and cherry angiomas. Dermoscopic patterns for benign naevi include regular pigment network, symmetric globular pattern, and homogeneous blue pattern (blue naevus). The presence of a single dominant pattern and symmetry of structures are reassuring features.",
+        "Seborrheic keratoses typically exhibit a 'stuck-on' appearance with well-demarcated borders, comedo-like openings, milia-like cysts, and fissures on dermoscopy. These are benign lesions requiring no treatment unless symptomatic. However, a sudden eruption of multiple seborrheic keratoses (Leser-Trelat sign) may warrant investigation for underlying malignancy."
+      ]
+    }
+  ]
+}

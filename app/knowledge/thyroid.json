@@ -1,0 +1,22 @@
+{
+  "domain": "thyroid",
+  "guidelines": [
+    {
+      "source": "ACR TI-RADS 2017 — Thyroid Imaging Reporting and Data System",
+      "condition": "suspicious",
+      "passages": [
+        "ACR TI-RADS assigns points based on ultrasound features across five categories: composition, echogenicity, shape, margin, and echogenic foci. A total score of TR4 (6 points, moderately suspicious) or TR5 (≥7 points, highly suspicious) warrants fine-needle aspiration (FNA) for nodules ≥10 mm (TR4) or ≥5 mm (TR5). Highly suspicious features include solid composition, hypoechogenicity, taller-than-wide shape, irregular margins, and punctate echogenic foci.",
+        "The ATA 2015 guidelines classify thyroid nodules by sonographic pattern: high suspicion (solid hypoechoic nodule or component with irregular margins, microcalcifications, taller-than-wide shape, or extrathyroidal extension) carries a malignancy risk of 70–90%. FNA is recommended for high-suspicion nodules ≥10 mm.",
+        "Bethesda System for Reporting Thyroid Cytopathology classifies FNA results into six categories: I — nondiagnostic (repeat FNA), II — benign (follow-up), III — atypia of undetermined significance (repeat FNA or molecular testing), IV — follicular neoplasm (lobectomy or molecular testing), V — suspicious for malignancy (lobectomy or total thyroidectomy), VI — malignant (surgery)."
+      ]
+    },
+    {
+      "source": "ATA 2015 — Management Guidelines for Thyroid Nodules",
+      "condition": "low_risk",
+      "passages": [
+        "Low-suspicion sonographic patterns include isoechoic or hyperechoic, partially cystic nodules with eccentric solid areas without any of the high-suspicion features. These carry a malignancy risk of 5–10%. FNA is recommended for low-suspicion nodules ≥15 mm. Very low suspicion patterns (spongiform or partially cystic without suspicious features) have a malignancy risk of <3% and FNA may be considered at ≥20 mm or observation is acceptable.",
+        "Purely cystic thyroid nodules carry a malignancy risk of <1% and do not require FNA. Nodules that are stable in size over 2 or more years of follow-up imaging are considered likely benign. Repeat ultrasound is recommended at 12–24 months for low-suspicion nodules not meeting FNA criteria."
+      ]
+    }
+  ]
+}

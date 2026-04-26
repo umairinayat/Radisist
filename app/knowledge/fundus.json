@@ -1,0 +1,30 @@
+{
+  "domain": "fundus",
+  "guidelines": [
+    {
+      "source": "AAO PPP 2019 — Diabetic Retinopathy",
+      "condition": "diabetic_retinopathy",
+      "passages": [
+        "The International Clinical Diabetic Retinopathy Severity Scale classifies diabetic retinopathy into five stages: no apparent retinopathy, mild nonproliferative (NPDR — microaneurysms only), moderate NPDR (microaneurysms plus other lesions such as dot-blot hemorrhages, hard exudates, or cotton-wool spots but less than severe NPDR), severe NPDR (any of the 4-2-1 rule: >20 intraretinal hemorrhages in each of 4 quadrants, venous beading in ≥2 quadrants, or IRMA in ≥1 quadrant), and proliferative diabetic retinopathy (neovascularization or vitreous/preretinal hemorrhage).",
+        "Diabetic macular edema (DME) is the most common cause of vision loss in diabetic retinopathy. Clinically significant macular edema is defined as retinal thickening or hard exudates within 500 microns of the foveal center, or a zone of thickening one disc area or larger within one disc diameter of the fovea. Anti-VEGF therapy (e.g., ranibizumab, aflibercept, bevacizumab) is first-line treatment for center-involving DME.",
+        "Screening recommendations: Type 1 diabetes — initial dilated eye exam within 5 years of diagnosis; Type 2 diabetes — at diagnosis. Annual screening is recommended thereafter, with more frequent examinations for patients with existing retinopathy. AI-based screening systems with demonstrated sensitivity ≥87% and specificity ≥90% may be used for autonomous detection of more-than-mild diabetic retinopathy."
+      ]
+    },
+    {
+      "source": "EGS 2020 — European Glaucoma Society Guidelines",
+      "condition": "glaucoma",
+      "passages": [
+        "Funduscopic features of glaucomatous optic neuropathy include increased cup-to-disc ratio (>0.6 or asymmetry >0.2 between eyes), neuroretinal rim thinning or notching (particularly inferotemporal and superotemporal), disc hemorrhages, retinal nerve fiber layer (RNFL) defects, and peripapillary atrophy. These structural changes often precede visual field loss.",
+        "Intraocular pressure (IOP) remains the only modifiable risk factor for glaucoma. Target IOP should be individualized based on baseline IOP, disease severity, rate of progression, life expectancy, and other risk factors. Initial treatment is typically topical prostaglandin analogues, with escalation to combination therapy, laser trabeculoplasty, or surgery as needed."
+      ]
+    },
+    {
+      "source": "AAO PPP 2019 — Age-Related Macular Degeneration",
+      "condition": "age_related_macular_degeneration",
+      "passages": [
+        "Age-related macular degeneration (AMD) is classified as early (medium drusen 63–125 microns without pigmentary changes), intermediate (large drusen >125 microns or pigmentary abnormalities), or late (neovascular AMD or geographic atrophy). The AREDS2 formulation (vitamins C, E, zinc, copper, lutein, zeaxanthin) is recommended for intermediate AMD or late AMD in one eye to reduce progression risk.",
+        "Neovascular (wet) AMD requires urgent referral and treatment with intravitreal anti-VEGF agents. Fundus findings include subretinal or sub-RPE fluid, hemorrhage, hard exudates, or fibrovascular pigment epithelial detachment. OCT is essential for diagnosis and monitoring treatment response."
+      ]
+    }
+  ]
+}

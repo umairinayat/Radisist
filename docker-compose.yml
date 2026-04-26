@@ -1,0 +1,30 @@
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile.django
+    working_dir: /workspace/radisist/radisist_backend
+    environment:
+      DATABASE_URL: sqlite:////workspace/radisist/radisist_backend/db.sqlite3
+      DEBUG: "true"
+    command: sh -c "python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:7400"
+    ports:
+      - "7400:7400"
+    volumes:
+      - .:/workspace
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    working_dir: /workspace/radisist/radisist-fixed/radisist-fixed
+    environment:
+      VITE_DJANGO_API_BASE: http://django:7400/api
+    command: npm run dev -- --host 0.0.0.0 --port 7005
+    ports:
+      - "7005:7005"
+    volumes:
+      - .:/workspace
+      - /workspace/radisist/radisist-fixed/radisist-fixed/node_modules
+    depends_on:
+      - django

@@ -1,0 +1,29 @@
+{
+  "domain": "breast_ultrasound",
+  "guidelines": [
+    {
+      "source": "ACR BI-RADS 5th Edition — Ultrasound Lexicon",
+      "condition": "malignant",
+      "passages": [
+        "Ultrasound features suspicious for malignancy include irregular shape, non-parallel (taller-than-wide) orientation, angular or spiculated margins, posterior acoustic shadowing, and associated architectural distortion or calcifications. These findings correspond to BI-RADS 4C or 5 assessment and require tissue sampling via core needle biopsy.",
+        "BI-RADS 5 (highly suggestive of malignancy) is assigned when the lesion displays a combination of classic malignant features with a positive predictive value ≥95%. Appropriate management includes tissue diagnosis prior to definitive surgical planning."
+      ]
+    },
+    {
+      "source": "ACR BI-RADS 5th Edition — Benign Ultrasound Assessment",
+      "condition": "benign",
+      "passages": [
+        "Features of a classic benign lesion (BI-RADS 2) on ultrasound include oval shape, parallel orientation, circumscribed margins, and absent or mild posterior acoustic enhancement. Simple cysts must meet all criteria: anechoic, round or oval, circumscribed, thin imperceptible wall, and posterior acoustic enhancement.",
+        "BI-RADS 3 (probably benign) is assigned to solid lesions with a circumscribed oval shape and parallel orientation without suspicious features, carrying a malignancy risk <2%. Short-interval follow-up at 6 months is recommended, with subsequent follow-up at 6-month intervals for 2 years to establish stability."
+      ]
+    },
+    {
+      "source": "ACR Practice Parameter 2020 — Breast Ultrasound Examination",
+      "condition": "normal",
+      "passages": [
+        "A normal breast ultrasound demonstrates homogeneous echotexture of the breast parenchyma with well-defined layers: skin, subcutaneous fat, mammary zone (fibroglandular tissue), retromammary fat, and pectoral muscle. No focal solid or cystic masses, architectural distortion, or suspicious calcifications are identified.",
+        "Supplemental breast ultrasound screening is recommended for women with dense breast tissue (ACR density categories C or D) who are at average or intermediate risk, as mammographic sensitivity is reduced in dense breasts. Automated breast ultrasound (ABUS) systems are FDA-approved for this purpose."
+      ]
+    }
+  ]
+}

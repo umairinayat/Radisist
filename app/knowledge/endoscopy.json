@@ -1,0 +1,38 @@
+{
+  "domain": "endoscopy",
+  "guidelines": [
+    {
+      "source": "ESGE 2019 — Barrett's Esophagus Management",
+      "condition": "barretts",
+      "passages": [
+        "Barrett's esophagus is defined as columnar metaplasia of the distal esophagus of any length that can be recognized at endoscopy and is confirmed to have intestinal metaplasia by biopsy. The Prague C&M criteria should be used to describe the extent of Barrett's mucosa, reporting both circumferential (C) and maximum (M) extent in centimetres.",
+        "For non-dysplastic Barrett's esophagus, surveillance endoscopy with Seattle protocol biopsies (four-quadrant biopsies every 2 cm) is recommended every 3–5 years. High-definition white-light endoscopy combined with chromoendoscopy or virtual chromoendoscopy should be used to improve detection of dysplasia.",
+        "Confirmed low-grade dysplasia in Barrett's esophagus should be managed with endoscopic eradication therapy, preferably radiofrequency ablation, given the elevated annual risk of progression to high-grade dysplasia or esophageal adenocarcinoma (0.5–1.4% per year)."
+      ]
+    },
+    {
+      "source": "ACG 2022 — Erosive Esophagitis Clinical Guideline",
+      "condition": "esophagitis",
+      "passages": [
+        "Erosive esophagitis is graded using the Los Angeles classification system: Grade A — one or more mucosal breaks no longer than 5 mm; Grade B — at least one mucosal break longer than 5 mm but not extending between two mucosal folds; Grade C — mucosal breaks extending between two or more mucosal folds but involving less than 75% of the circumference; Grade D — mucosal breaks involving 75% or more of the esophageal circumference.",
+        "PPI therapy is the mainstay of treatment for erosive esophagitis. Healing rates exceed 90% at 8 weeks with standard-dose PPI for LA grades A–B. Grades C–D require higher-dose or longer-duration PPI and should be followed up with repeat endoscopy to confirm healing and exclude underlying Barrett's esophagus."
+      ]
+    },
+    {
+      "source": "ESGE 2020 — Colorectal Polypectomy and Endoscopic Mucosal Resection",
+      "condition": "polyp",
+      "passages": [
+        "All detected colorectal polyps should be documented with standardized descriptors including size, morphology (Paris classification), location, and surface pattern (NICE or JNET classification). Polyps ≤5 mm (diminutive) may be managed with cold snare polypectomy or cold forceps biopsy. Polyps 6–9 mm should be removed by cold snare polypectomy.",
+        "Polyps ≥10 mm require hot snare polypectomy or endoscopic mucosal resection (EMR). Careful assessment for features of submucosal invasion (NICE type 3 or JNET 2B/3) is essential before attempted endoscopic removal. Surveillance intervals should follow post-polypectomy guidelines based on polyp number, size, and histology."
+      ]
+    },
+    {
+      "source": "ECCO–ESGAR 2018 — Ulcerative Colitis Endoscopic Assessment",
+      "condition": "ulcerative_colitis",
+      "passages": [
+        "Endoscopic assessment using the Mayo Endoscopic Subscore (MES) is recommended: 0 — normal or inactive disease; 1 — mild (erythema, decreased vascular pattern, mild friability); 2 — moderate (marked erythema, absent vascular pattern, friability, erosions); 3 — severe (spontaneous bleeding, ulceration). Mucosal healing is defined as MES 0 or 1.",
+        "The Ulcerative Colitis Endoscopic Index of Severity (UCEIS) provides a more granular scoring system incorporating vascular pattern, bleeding, and erosions/ulcers. Chromoendoscopy with targeted biopsies is recommended for dysplasia surveillance in longstanding ulcerative colitis (≥8 years from symptom onset) and should be performed during disease remission."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "domain": "microscopy",
+  "guidelines": [
+    {
+      "source": "CAP 2020 — Cancer Protocol Templates for Histopathology Reporting",
+      "condition": "general_histopathology",
+      "passages": [
+        "Histopathological assessment of tissue specimens should include systematic reporting of: specimen type and site, tumor type (WHO classification), histologic grade (differentiation), tumor size, margins of excision (distance to nearest margin), lymphovascular invasion, perineural invasion, and pathologic staging (AJCC TNM 8th edition). Synoptic reporting using CAP cancer protocol templates is recommended to ensure completeness.",
+        "Immunohistochemistry (IHC) is essential for accurate tumor classification when morphology alone is insufficient. Standard panels vary by suspected tumor type. For undifferentiated carcinomas, initial IHC should include cytokeratins (AE1/AE3, CK7, CK20), TTF-1, CDX2, PAX8, and p40 to determine likely primary site. Appropriate positive and negative controls must accompany all IHC stains."
+      ]
+    },
+    {
+      "source": "WHO 2019 — Classification of Tumours: Digestive System (5th Edition)",
+      "condition": "gastrointestinal_pathology",
+      "passages": [
+        "Colorectal adenocarcinoma grading: low-grade (well to moderately differentiated, >50% gland formation) versus high-grade (poorly differentiated, ≤50% gland formation). Histologic subtypes with prognostic significance include mucinous adenocarcinoma (>50% extracellular mucin), signet ring cell carcinoma (>50% signet ring cells), and medullary carcinoma. Mismatch repair (MMR) status by IHC (MLH1, MSH2, MSH6, PMS2) or microsatellite instability (MSI) testing should be performed on all colorectal carcinomas.",
+        "Dysplasia in inflammatory bowel disease is classified as negative, indefinite, or positive (low-grade or high-grade). All dysplasia diagnoses should be confirmed by a second expert gastrointestinal pathologist. Raised dysplastic lesions that can be completely resected endoscopically may be managed with surveillance, whereas flat or multifocal dysplasia typically warrants colectomy."
+      ]
+    },
+    {
+      "source": "ASCO/CAP 2023 — HER2 Testing Guidelines in Breast Cancer",
+      "condition": "breast_pathology",
+      "passages": [
+        "HER2 status must be determined on all newly diagnosed invasive breast carcinomas and recurrences. IHC scoring: 0 (negative, no staining or incomplete faint membrane staining in ≤10% of cells), 1+ (negative, incomplete faint membrane staining in >10% of cells), 2+ (equivocal, weak to moderate complete membrane staining in >10% of cells — requires reflex ISH testing), 3+ (positive, strong complete membrane staining in >10% of cells).",
+        "Estrogen receptor (ER) and progesterone receptor (PR) testing by IHC is mandatory for all invasive breast cancers and DCIS. ER-positive is defined as ≥1% of tumor cell nuclei demonstrating positive nuclear staining. Cases with 1–10% staining are reported as ER-low positive and clinical significance should be discussed with the oncology team. Ki-67 proliferation index, though not yet standardized, provides prognostic information and aids in treatment decisions for hormone receptor-positive, HER2-negative breast cancer."
+      ]
+    }
+  ]
+}

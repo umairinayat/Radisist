@@ -1,0 +1,22 @@
+{
+  "domain": "mammography",
+  "guidelines": [
+    {
+      "source": "ACR BI-RADS 5th Edition — Mammography Assessment",
+      "condition": "MALIGNANT",
+      "passages": [
+        "Mammographic features highly suggestive of malignancy (BI-RADS 5) include high-density spiculated masses, pleomorphic or fine linear branching calcifications in a segmental or linear distribution, and architectural distortion with associated calcifications. The positive predictive value for BI-RADS 5 lesions exceeds 95%.",
+        "BI-RADS 4 (suspicious) encompasses a wide range of malignancy probability (2–95%) and is subdivided: 4A (low suspicion, 2–10%), 4B (moderate suspicion, 10–50%), and 4C (high suspicion, 50–95%). All BI-RADS 4 and 5 lesions require tissue diagnosis, typically via image-guided core needle biopsy.",
+        "Suspicious calcification morphologies include fine pleomorphic (varying sizes and shapes, generally <0.5 mm), fine linear or fine linear branching (thin irregular calcifications), and amorphous (indistinct, too small to classify). Distribution patterns raising concern include segmental, linear, and clustered groups."
+      ]
+    },
+    {
+      "source": "ACR BI-RADS 5th Edition — Benign Mammographic Assessment",
+      "condition": "BENIGN",
+      "passages": [
+        "BI-RADS 2 (benign) findings include involuting calcified fibroadenomas, skin calcifications, vascular calcifications, fat-containing lesions (oil cysts, lipomas, hamartomas), intramammary lymph nodes, and secretory calcifications. These findings have essentially 0% malignancy risk and require only routine screening.",
+        "Typically benign calcifications include round (punctate), coarse (popcorn-like), rim (eggshell), dystrophic, and milk-of-calcium (layering on lateral views). Diffuse or scattered distribution further supports a benign etiology. BI-RADS 3 (probably benign) may be assigned to a non-calcified circumscribed oval mass or focal asymmetry at baseline, with <2% malignancy risk."
+      ]
+    }
+  ]
+}

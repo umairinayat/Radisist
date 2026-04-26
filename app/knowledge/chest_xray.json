@@ -1,0 +1,37 @@
+{
+  "domain": "chest_xray",
+  "guidelines": [
+    {
+      "source": "Fleischner Society 2017 — Guidelines for Management of Incidental Pulmonary Nodules",
+      "condition": "nodule",
+      "passages": [
+        "Solid pulmonary nodules <6 mm in low-risk patients require no routine follow-up. Solid nodules 6–8 mm should be followed with CT at 6–12 months, then consider CT at 18–24 months. Nodules >8 mm warrant CT at 3 months, PET/CT, or tissue sampling depending on clinical context and morphology.",
+        "Ground-glass nodules <6 mm generally require no follow-up. Ground-glass nodules ≥6 mm should be followed at 6–12 months, then every 2 years for a minimum of 5 years. Part-solid nodules require follow-up CT at 3–6 months; if the solid component is ≥6 mm, PET/CT or biopsy should be considered."
+      ]
+    },
+    {
+      "source": "ACR Appropriateness Criteria 2020 — Chest Radiograph Findings",
+      "condition": "consolidation",
+      "passages": [
+        "Consolidation on chest radiograph appears as opacification of airspaces with air bronchograms, typically indicating alveolar filling by fluid, pus, blood, or cells. In the appropriate clinical context (fever, cough, leukocytosis), consolidation is the hallmark radiographic finding of community-acquired pneumonia.",
+        "Persistent consolidation beyond 12 weeks despite appropriate antibiotic therapy should raise suspicion for underlying malignancy, organizing pneumonia, or chronic infection and warrants further evaluation with CT and possible tissue sampling."
+      ]
+    },
+    {
+      "source": "BTS 2010 — Guidelines for the Management of Spontaneous Pneumothorax",
+      "condition": "pneumothorax",
+      "passages": [
+        "Pneumothorax is identified on chest radiograph as a visible visceral pleural line with absence of lung markings peripheral to this line. Size is estimated by measuring the interpleural distance at the hilum: <2 cm is classified as small, ≥2 cm as large. Tension pneumothorax is a clinical diagnosis requiring immediate decompression and should not await radiographic confirmation.",
+        "Primary spontaneous pneumothorax in stable patients with small pneumothorax (<2 cm) may be managed conservatively with observation and supplemental oxygen. Large or symptomatic pneumothorax requires aspiration or chest drain insertion."
+      ]
+    },
+    {
+      "source": "ESC/ERS 2022 — Radiographic Assessment of Cardiothoracic Conditions",
+      "condition": "cardiomegaly",
+      "passages": [
+        "Cardiomegaly on PA chest radiograph is defined as a cardiothoracic ratio (CTR) exceeding 0.5. The CTR is measured as the maximum transverse cardiac diameter divided by the maximum internal thoracic diameter. AP films, supine positioning, and poor inspiratory effort can falsely exaggerate cardiac size.",
+        "Pleural effusion appears as homogeneous opacification of the costophrenic angle (meniscus sign) on upright films, requiring approximately 200–300 mL of fluid to be visible. Lateral decubitus views can detect effusions as small as 50 mL. Large effusions cause mediastinal shift to the contralateral side unless the underlying lung is collapsed or the effusion is due to mesothelioma."
+      ]
+    }
+  ]
+}

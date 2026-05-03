@@ -2,8 +2,9 @@ import os
 
 from django.core.files.base import ContentFile
 from django.db import models
+from django.utils import timezone
 
-from apps.users.models import Patient, Radiologist
+from apps.users.models import Patient, Radiologist, User
 
 class Scan(models.Model):
     SCAN_TYPES = [
@@ -41,6 +42,20 @@ class Scan(models.Model):
     def __str__(self):
         return f"{self.scan_type} for {self.patient} - {self.created_at.strftime('%Y-%m-%d')}"
 
+    def build_clinical_context(self):
+        patient = self.patient
+        user = patient.user
+        return {
+            "clinical_notes": self.description or "",
+            "patient_age": user.age,
+            "patient_gender": user.gender,
+            "symptoms": patient.symptoms,
+            "lifestyle": patient.lifestyle,
+            "previous_breast_disease": patient.previous_breast_disease,
+            "family_breast_cancer": patient.family_breast_cancer,
+            "hormonal_therapy": patient.hormonal_therapy,
+        }
+
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         super().save(*args, **kwargs)
@@ -66,6 +81,7 @@ class Scan(models.Model):
                     image_file.read(),
                     os.path.basename(image_path),
                     force_disease=force_disease,
+                    clinical_context=self.build_clinical_context(),
                 )
 
             if not result:
@@ -112,6 +128,10 @@ class Scan(models.Model):
                 "xai_error": result.get("xai_error"),
                 "report_provider": result.get("report_provider"),
                 "report_error": result.get("report_error"),
+                "safety": result.get("safety"),
+                "image_quality": result.get("image_quality"),
+                "clinical_context": result.get("clinical_context"),
+                "model_versions": result.get("model_versions"),
             }
 
             self.save(update_fields=[
@@ -166,6 +186,10 @@ class Scan(models.Model):
                     "report_error",
                     "updated_at",
                 ])
+
+            safety = result.get("safety") or {}
+            if safety.get("needs_radiologist_review"):
+                Notification.notify_radiologists_scan_needs_review(self, safety)
         except Exception as e:
             print(f"Failed to run AI prediction: {e}")
 
@@ -204,3 +228,83 @@ class ScanCrop(models.Model):
         crop.image.save(uploaded_file.name, ContentFile(uploaded_file.read()), save=False)
         crop.save()
         return crop
+
+
+class Notification(models.Model):
+    SCAN_NEEDS_REVIEW = "SCAN_NEEDS_REVIEW"
+    REPORT_FINALIZED = "REPORT_FINALIZED"
+
+    NOTIFICATION_TYPES = [
+        (SCAN_NEEDS_REVIEW, "Scan needs review"),
+        (REPORT_FINALIZED, "Report finalized"),
+    ]
+
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name="radiology_notifications")
+    scan = models.ForeignKey(Scan, on_delete=models.CASCADE, null=True, blank=True, related_name="notifications")
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, null=True, blank=True, related_name="notifications")
+    notification_type = models.CharField(max_length=40, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["recipient", "read_at"]),
+            models.Index(fields=["notification_type", "created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.title} -> {self.recipient}"
+
+    @property
+    def is_read(self):
+        return self.read_at is not None
+
+    def mark_read(self):
+        if not self.read_at:
+            self.read_at = timezone.now()
+            self.save(update_fields=["read_at"])
+
+    @classmethod
+    def notify_radiologists_scan_needs_review(cls, scan, safety=None):
+        safety = safety or {}
+        warnings = safety.get("warnings") or []
+        message = "A new AI-assisted scan needs radiologist review."
+        if warnings:
+            message = f"{message} Safety note: {warnings[0]}"
+
+        for radiologist in Radiologist.objects.select_related("user").all():
+            notification, created = cls.objects.get_or_create(
+                recipient=radiologist.user,
+                scan=scan,
+                notification_type=cls.SCAN_NEEDS_REVIEW,
+                defaults={
+                    "title": "Scan needs radiologist review",
+                    "message": message,
+                },
+            )
+            if not created:
+                notification.title = "Scan needs radiologist review"
+                notification.message = message
+                notification.read_at = None
+                notification.save(update_fields=["title", "message", "read_at"])
+
+    @classmethod
+    def notify_patient_report_finalized(cls, report):
+        scan = report.scan
+        title = "Your radiology report is finalized"
+        message = report.impression or "Your finalized radiology report is ready to view."
+        notification, created = cls.objects.get_or_create(
+            recipient=scan.patient.user,
+            scan=scan,
+            report=report,
+            notification_type=cls.REPORT_FINALIZED,
+            defaults={"title": title, "message": message},
+        )
+        if not created:
+            notification.title = title
+            notification.message = message
+            notification.read_at = None
+            notification.save(update_fields=["title", "message", "read_at"])

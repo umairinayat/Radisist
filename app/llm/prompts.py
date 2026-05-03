@@ -22,6 +22,18 @@ REPORT_TEMPLATE = """<system>{system_prompt}</system>
 Confidence: {confidence}
 </uncertainty>
 
+<patient_context>
+{clinical_context}
+</patient_context>
+
+<image_quality>
+{image_quality}
+</image_quality>
+
+<safety_gate>
+{safety_gate}
+</safety_gate>
+
 <evidence>
 {evidence}
 </evidence>
@@ -73,9 +85,22 @@ Generate a JSON report with these EXACT fields. The `ai_reasoning_process` MUST 
   }},
   "next_actions": "A clinical recommendations paragraph that cites specific guidelines.",
   "clinical_recommendations": [
-    {{"recommendation": "text", "citation": "guideline source"}}
+    {{"recommendation": "text", "citation": "guideline source", "citation_id": "G1"}}
   ],
-  "summary": "2-3 sentence clinical summary"
+  "evidence_citations": [
+    {{"id": "G1", "source": "guideline source", "url": "https://...", "condition": "matched condition"}}
+  ],
+  "patient_context_used": {{
+    "clinical_notes": "summarized notes used or none provided",
+    "symptoms": "symptoms/history used or none provided"
+  }},
+  "safety": {{
+    "status": "ai_assisted/needs_radiologist_review",
+    "needs_radiologist_review": false,
+    "warnings": []
+  }},
+  "summary": "2-3 sentence clinical summary",
+  "disclaimer": "AI decision support disclaimer"
 }}
 
 Return ONLY the JSON, no markdown fences or extra text.

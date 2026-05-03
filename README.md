@@ -109,3 +109,5 @@ See these for more detail:
 - `app/README.md`
 - `radisist/radisist_backend/README.md`
 - `radisist/radisist-fixed/radisist-fixed/README.md`
+- `PIPELINE_FLOW.md`
+- `PIPELINE_ARCHITECTURE_README.md`

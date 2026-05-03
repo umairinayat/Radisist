@@ -18,6 +18,45 @@ def validate_image(file_bytes: bytes, content_type: str) -> bool:
         return False
 
 
+def assess_image_quality(image: Image.Image) -> dict:
+    """Return simple, explainable image-quality checks for safety gating."""
+    rgb_image = image.convert("RGB")
+    width, height = rgb_image.size
+    grayscale = cv2.cvtColor(np.array(rgb_image), cv2.COLOR_RGB2GRAY)
+
+    brightness = float(np.mean(grayscale))
+    contrast = float(np.std(grayscale))
+    blur_score = float(cv2.Laplacian(grayscale, cv2.CV_64F).var())
+
+    warnings = []
+    if width < 128 or height < 128:
+        warnings.append("Image resolution is very small for reliable AI review.")
+    if blur_score < 20:
+        warnings.append("Image appears blurry or low-detail.")
+    if contrast < 18:
+        warnings.append("Image contrast is low.")
+    if brightness < 25:
+        warnings.append("Image is very dark.")
+    if brightness > 235:
+        warnings.append("Image is very bright or overexposed.")
+
+    status = "acceptable"
+    if warnings:
+        status = "needs_review"
+    if len(warnings) >= 2 or width < 96 or height < 96:
+        status = "poor"
+
+    return {
+        "status": status,
+        "width": width,
+        "height": height,
+        "brightness": round(brightness, 2),
+        "contrast": round(contrast, 2),
+        "blur_score": round(blur_score, 2),
+        "warnings": warnings,
+    }
+
+
 def load_image(file_bytes: bytes) -> Image.Image:
     # Try DICOM first
     try:

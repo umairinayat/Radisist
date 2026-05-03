@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Scan, Report, ScanCrop
+from .models import Notification, Scan, Report, ScanCrop
 from .pipeline_service import MODALITY_TO_DISEASE, ROUTER_CLASSES, file_to_base64
 
 
@@ -7,6 +7,29 @@ class ScanCropSerializer(serializers.ModelSerializer):
     class Meta:
         model = ScanCrop
         fields = ["id", "image", "x", "y", "width", "height", "created_at"]
+        read_only_fields = fields
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    scan_title = serializers.CharField(source="scan.title", read_only=True)
+    report_id = serializers.IntegerField(source="report.id", read_only=True)
+    is_read = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = [
+            "id",
+            "notification_type",
+            "title",
+            "message",
+            "scan",
+            "scan_title",
+            "report",
+            "report_id",
+            "is_read",
+            "read_at",
+            "created_at",
+        ]
         read_only_fields = fields
 
 class ReportSerializer(serializers.ModelSerializer):
@@ -53,6 +76,13 @@ class ScanSerializer(serializers.ModelSerializer):
     xai_error = serializers.SerializerMethodField()
     report_provider = serializers.SerializerMethodField()
     report_error = serializers.SerializerMethodField()
+    safety = serializers.SerializerMethodField()
+    image_quality = serializers.SerializerMethodField()
+    display_prediction = serializers.SerializerMethodField()
+    review_status = serializers.SerializerMethodField()
+    patient_context = serializers.SerializerMethodField()
+    patient_summary_sent_at = serializers.SerializerMethodField()
+    model_versions = serializers.SerializerMethodField()
     original_image = serializers.SerializerMethodField()
     ultrasound_options = serializers.SerializerMethodField()
     report = ReportSerializer(read_only=True)
@@ -69,7 +99,8 @@ class ScanSerializer(serializers.ModelSerializer):
             'analysis_metadata', 'report', 'crops',
             'report_id', 'timestamp', 'total_latency_ms', 'routing', 'classification', 'segmentation',
             'segmentation_overlay', 'xai_heatmap', 'xai_error', 'report_provider', 'report_error',
-            'original_image', 'ultrasound_options'
+            'safety', 'image_quality', 'display_prediction', 'review_status', 'patient_context',
+            'patient_summary_sent_at', 'model_versions', 'original_image', 'ultrasound_options'
         ]
         read_only_fields = [
             'id', 'created_at', 'patient', 
@@ -139,6 +170,59 @@ class ScanSerializer(serializers.ModelSerializer):
         if hasattr(obj, 'report') and obj.report:
             return obj.report.report_error or self._metadata(obj).get('report_error')
         return self._metadata(obj).get('report_error')
+
+    def get_safety(self, obj):
+        metadata = self._metadata(obj)
+        safety = metadata.get('safety')
+        if safety:
+            return safety
+
+        warnings = []
+        if obj.routed_confidence is not None and obj.routed_confidence < 0.75:
+            warnings.append("Router confidence is below the review threshold.")
+        if obj.ai_confidence is not None and obj.ai_confidence < 0.70:
+            warnings.append("Classifier confidence is below the review threshold.")
+
+        needs_review = bool(warnings)
+        return {
+            "status": "needs_radiologist_review" if needs_review else "ai_assisted",
+            "display_label": "Needs radiologist review" if needs_review else obj.ai_predicted_class,
+            "needs_radiologist_review": needs_review,
+            "unsupported_or_ambiguous": False,
+            "warnings": warnings,
+            "disclaimer": "AI output is decision support only and must be reviewed by a qualified radiologist before clinical use.",
+        }
+
+    def get_image_quality(self, obj):
+        return self._metadata(obj).get('image_quality')
+
+    def get_display_prediction(self, obj):
+        safety = self.get_safety(obj)
+        if safety and safety.get("needs_radiologist_review"):
+            return "Needs radiologist review"
+        return obj.ai_predicted_class
+
+    def get_review_status(self, obj):
+        report = getattr(obj, "report", None)
+        if report and report.is_final:
+            return "finalized"
+        if report and report.radiologist_id:
+            return "accepted_by_radiologist"
+        safety = self.get_safety(obj)
+        if safety and safety.get("needs_radiologist_review"):
+            return "needs_radiologist_review"
+        if obj.ai_generated:
+            return "awaiting_radiologist_review"
+        return "analysis_pending"
+
+    def get_patient_context(self, obj):
+        return self._metadata(obj).get('clinical_context')
+
+    def get_patient_summary_sent_at(self, obj):
+        return self._metadata(obj).get('patient_summary_sent_at')
+
+    def get_model_versions(self, obj):
+        return self._metadata(obj).get('model_versions')
 
     def get_original_image(self, obj):
         if not obj.image:

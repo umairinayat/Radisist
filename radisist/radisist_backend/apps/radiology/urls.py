@@ -7,6 +7,7 @@ from .views import (
     PipelineRouteView,
     PipelineSampleImageView,
     PipelineSamplesView,
+    NotificationViewSet,
     ReportViewSet,
     ScanViewSet,
 )
@@ -14,6 +15,7 @@ from .views import (
 router = DefaultRouter()
 router.register(r'scans', ScanViewSet, basename='scan')
 router.register(r'reports', ReportViewSet, basename='report')
+router.register(r'notifications', NotificationViewSet, basename='notification')
 
 urlpatterns = [
     path('pipeline/health/', PipelineHealthView.as_view(), name='pipeline-health'),

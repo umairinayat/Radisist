@@ -12,7 +12,7 @@ from app.config import DISEASE_MODELS, MODALITY_TO_DISEASE, ROUTER_CLASSES  # no
 from app.models.model_registry import download_all_models  # noqa: E402
 from app.models.router import router_instance  # noqa: E402
 from app.pipeline.orchestrator import analyze_image  # noqa: E402
-from app.pipeline.preprocessing import image_to_base64, load_image, preprocess_for_classification  # noqa: E402
+from app.pipeline.preprocessing import assess_image_quality, image_to_base64, load_image, preprocess_for_classification  # noqa: E402
 
 SAMPLES_DIR = PIPELINE_ROOT / "app" / "static" / "samples"
 
@@ -35,16 +35,26 @@ def ensure_pipeline_ready():
 def route_medical_image(file_bytes: bytes) -> dict:
     ensure_pipeline_ready()
     image = load_image(file_bytes)
+    image_quality = assess_image_quality(image)
     image = preprocess_for_classification(image)
     route_result = router_instance.predict(image)
     modality_idx = route_result["modality_index"]
     route_result["disease_models"] = MODALITY_TO_DISEASE.get(modality_idx, [])
+    route_result["image_quality"] = image_quality
+    if image_quality["status"] != "acceptable":
+        route_result["needs_radiologist_review"] = True
+        route_result["warnings"] = image_quality["warnings"]
     return route_result
 
 
-def analyze_medical_image(file_bytes: bytes, filename: str, force_disease: str | None = None) -> dict:
+def analyze_medical_image(
+    file_bytes: bytes,
+    filename: str,
+    force_disease: str | None = None,
+    clinical_context: dict | None = None,
+) -> dict:
     ensure_pipeline_ready()
-    return async_to_sync(analyze_image)(file_bytes, filename, force_disease)
+    return async_to_sync(analyze_image)(file_bytes, filename, force_disease, clinical_context)
 
 
 def file_to_base64(file_path: str) -> str | None:

@@ -48,3 +48,5 @@ Thumbs.db
 
 # Local cache directories
 .cache/
+/root/fyp/frontend-7005.log
+/root/fyp/radisist-7004.log

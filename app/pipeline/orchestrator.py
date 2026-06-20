@@ -53,14 +53,20 @@ def build_model_versions(disease: str | None, has_segmentation: bool) -> dict:
         },
         "xai": {
             "name": "Grad-CAM++",
-            "target": "BiomedCLIP visual transformer block",
+            "target": "per-architecture last conv / transformer block",
         },
     }
 
     if disease:
+        cls_arch = None
+        try:
+            if disease in classifier_instance.loaded_models:
+                cls_arch = classifier_instance.loaded_models[disease].get("arch")
+        except Exception:
+            cls_arch = None
         versions["classifier"] = {
-            "name": f"BiomedCLIP-{disease}",
-            "backbone": "microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224",
+            "name": f"{cls_arch or 'BiomedCLIP'}-{disease}",
+            "backbone": cls_arch or "microsoft/BiomedCLIP-PubMedBERT_256-vit_base_patch16_224",
             "disease_model": disease,
             **model_checkpoint_metadata(
                 MODELS_DIR / "disease_models" / disease / "classification" / "best_classifier.pt"
@@ -68,9 +74,15 @@ def build_model_versions(disease: str | None, has_segmentation: bool) -> dict:
         }
 
     if disease and has_segmentation:
+        seg_arch = "UNet++"
+        try:
+            if disease in segmentor_instance.loaded_models:
+                seg_arch = segmentor_instance.loaded_models[disease].get("arch", "UNet++")
+        except Exception:
+            pass
         versions["segmentor"] = {
-            "name": f"UNet++-{disease}",
-            "architecture": "segmentation_models_pytorch.UnetPlusPlus",
+            "name": f"{seg_arch}-{disease}",
+            "architecture": seg_arch,
             "disease_model": disease,
             **model_checkpoint_metadata(
                 MODELS_DIR / "disease_models" / disease / "segmentation" / "best_segmenter.pt"
@@ -190,6 +202,7 @@ async def analyze_image(
         try:
             t4 = time.time()
             model, preprocess = classifier_instance.get_model_and_preprocess(disease)
+            cls_arch = classifier_instance.loaded_models.get(disease, {}).get("arch", "")
             target_class = None
             if classification_result:
                 # Find index of top prediction
@@ -198,7 +211,7 @@ async def analyze_image(
                 if top in classes:
                     target_class = classes.index(top)
 
-            xai_result = generate_gradcam(model, preprocess, image_cls, DEVICE, target_class)
+            xai_result = generate_gradcam(model, preprocess, image_cls, DEVICE, target_class, arch=cls_arch)
             audit_trail.append({
                 "step": "explain",
                 "tool": "Grad-CAM++",

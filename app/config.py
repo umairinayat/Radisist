@@ -37,25 +37,21 @@ ROUTER_CLASSES = [
 
 DISEASE_MODELS = {
     "endoscopy": {
-        "classes": ["barretts", "esophagitis", "polyp", "ulcerative_colitis"],
+        "classes": ["barretts", "esophagitis", "polyp", "ulcerative_colitis", "healthy"],
         "has_segmentation": True,
         "multilabel": False,
         "specialist": "Gastrointestinal Specialist",
     },
     "dermatology": {
         "classes": ["malignant", "non_malignant"],
-        "has_segmentation": False,
+        "has_segmentation": True,
         "multilabel": False,
         "specialist": "Dermatology Specialist",
     },
     "chest_xray": {
-        "classes": [
-            "atelectasis", "cardiomegaly", "consolidation", "edema", "effusion",
-            "emphysema", "fibrosis", "hernia", "infiltration", "mass",
-            "no_finding", "nodule", "pleural_thickening", "pneumonia", "pneumothorax",
-        ],
-        "has_segmentation": False,
-        "multilabel": True,
+        "classes": ["covid", "lung_opacity", "normal", "viral_pneumonia"],
+        "has_segmentation": True,
+        "multilabel": False,
         "specialist": "Pulmonary Specialist",
     },
     "breast_ultrasound": {
@@ -65,7 +61,7 @@ DISEASE_MODELS = {
         "specialist": "Breast Ultrasound Specialist",
     },
     "mammography": {
-        "classes": ["BENIGN", "MALIGNANT"],
+        "classes": ["benign", "malignant", "normal"],
         "has_segmentation": True,
         "multilabel": False,
         "specialist": "Mammography Specialist",

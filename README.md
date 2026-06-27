@@ -14,9 +14,8 @@ This repository contains the Radisist medical imaging pipeline, the integrated D
 |  Integrated application workspace
 |  |- radisist_backend/
 |  |  Django backend for auth, scans, reports, and pipeline endpoints
-|  |- radisist-fixed/
-|     |- radisist-fixed/
-|        React frontend used by the integrated app
+|  |- radisist-frontend/
+|     React frontend used by the integrated app
 |- scripts/
 |  Utility scripts for sample images
 |- uploads/
@@ -29,7 +28,7 @@ This repository contains the Radisist medical imaging pipeline, the integrated D
 ## Which Parts Matter Most
 
 - Use `radisist/radisist_backend/` when working on backend features.
-- Use `radisist/radisist-fixed/radisist-fixed/` when working on frontend features.
+- Use `radisist/radisist-frontend/` when working on frontend features.
 - Use `app/` when working on the underlying standalone pipeline logic that Django now wraps.
 
 ## Current Integrated Stack
@@ -67,7 +66,7 @@ If you see something on port `8000`, that is not part of this repository's integ
 - Django project.
 - Handles auth, roles, scans, reports, and the integrated pipeline endpoints.
 
-### `radisist/radisist-fixed/radisist-fixed/`
+### `radisist/radisist-frontend/`
 
 - React frontend.
 - Contains auth screens, patient dashboard, upload flow, analyzed workspace, and reports UI.
@@ -87,7 +86,7 @@ DATABASE_URL=sqlite:////root/fyp/radisist/radisist_backend/db.sqlite3 DEBUG=true
 The frontend toolchain expects Node 20.
 
 ```bash
-cd /root/fyp/radisist/radisist-fixed/radisist-fixed
+cd /root/fyp/radisist/radisist-frontend
 VITE_DJANGO_API_BASE=http://127.0.0.1:7400/api npx -y node@20 ./node_modules/vite/bin/vite.js --host 0.0.0.0 --port 7005
 ```
 
@@ -108,6 +107,6 @@ See these for more detail:
 
 - `app/README.md`
 - `radisist/radisist_backend/README.md`
-- `radisist/radisist-fixed/radisist-fixed/README.md`
+- `radisist/radisist-frontend/README.md`
 - `PIPELINE_FLOW.md`
 - `PIPELINE_ARCHITECTURE_README.md`

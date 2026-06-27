@@ -1,12 +1,12 @@
 FROM node:20-bullseye
 
-WORKDIR /workspace/radisist/radisist-fixed/radisist-fixed
+WORKDIR /workspace/radisist/radisist-frontend
 
-COPY radisist/radisist-fixed/radisist-fixed/package.json ./
+COPY radisist/radisist-frontend/package.json ./
 
 RUN npm install
 
-COPY radisist/radisist-fixed/radisist-fixed ./
+COPY radisist/radisist-frontend ./
 
 EXPOSE 7005
 

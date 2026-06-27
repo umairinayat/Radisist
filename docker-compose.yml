@@ -17,7 +17,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    working_dir: /workspace/radisist/radisist-fixed/radisist-fixed
+    working_dir: /workspace/radisist/radisist-frontend
     environment:
       VITE_DJANGO_API_BASE: http://django:7400/api
     command: npm run dev -- --host 0.0.0.0 --port 7005
@@ -25,6 +25,6 @@ services:
       - "7005:7005"
     volumes:
       - .:/workspace
-      - /workspace/radisist/radisist-fixed/radisist-fixed/node_modules
+      - /workspace/radisist/radisist-frontend/node_modules
     depends_on:
       - django

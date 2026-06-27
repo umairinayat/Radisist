@@ -1,0 +1,79 @@
+{
+  "patient": {
+    "name": "Samroz Burhan",
+    "id": "PID-78901",
+    "location": "Lahore, Pakistan",
+    "contact": "+92 123 456 789 9",
+    "ageSex": "Male",
+    "registered": "2025-10-06"
+  },
+  "dashboard": {
+    "pendingRequests": "02",
+    "completedReports": "01",
+    "recentActivity": [
+      {
+        "date": "2025-01-20",
+        "activity": "Request Sent",
+        "scan": "CT Scan - Chest",
+        "status": "Pending"
+      },
+      {
+        "date": "2025-01-20",
+        "activity": "Request Sent",
+        "scan": "CT Scan - Lungs",
+        "status": "Pending"
+      },
+      {
+        "date": "2025-01-20",
+        "activity": "Report Received",
+        "scan": "CT Scan - Chest",
+        "status": "Completed"
+      },
+      {
+        "date": "2025-01-20",
+        "activity": "Scan Uploaded",
+        "scan": "CT Scan - Chest",
+        "status": "In Progress"
+      }
+    ]
+  },
+  "uploadScan": {
+    "fileName": "scan_file_chest.dcm",
+    "uploaded": "2025-10-15",
+    "status": "Analysis Complete",
+    "aiConfidence": 89,
+    "recommendedForReview": true,
+    "findings": {
+      "infection": 82,
+      "inflammation": 71,
+      "pneumonia": 18
+    },
+    "patientProblems": [
+      "Occasional shortness of breath",
+      "Persistent cough for the past 3 weeks",
+      "Mild chest pain during deep breathing"
+    ],
+    "reasoning": "Abnormal opacity and slight inflammation detected in the right lower lung lobe. Findings may indicate early infection or localized fluid buildup."
+  },
+  "report": {
+    "reportId": "RPT-00123",
+    "date": "2025-10-05",
+    "caseNo": "CASE-00456",
+    "findings": "CT scan reveals a 2.5 cm spiculated solid nodule in the upper lobe of the right lung. No lymphadenopathy identified. Minor atelectasis noted at lung bases.",
+    "impressions": {
+      "critical": true,
+      "summary": "Findings are highly suspicious for malignancy. Immediate clinical correlation recommended."
+    },
+    "suggestions": [
+      "Oncologist consultation for management of the suspicious lung nodule.",
+      "Consider PET-CT scan for staging.",
+      "Biopsy of the lung nodule for histopathological diagnosis.",
+      "Cardiology consultation for coronary artery disease evaluation."
+    ],
+    "radiologist": {
+      "name": "Dr. James Martin",
+      "designation": "Board Certified Radiologist",
+      "email": "jamesm@gmail.com"
+    }
+  }
+}

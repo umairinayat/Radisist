@@ -73,6 +73,23 @@ export default function Upload() {
         }
 
         const nextSamples = data.diseases || [];
+        const modalityOrder = [
+          "mammography",
+          "breast_ultrasound",
+          "chest_xray",
+          "endoscopy",
+          "fundus_retinography",
+        ];
+        nextSamples.sort((a, b) => {
+          const indexA = modalityOrder.indexOf(a.disease);
+          const indexB = modalityOrder.indexOf(b.disease);
+          if (indexA !== -1 && indexB !== -1) {
+            return indexA - indexB;
+          }
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
+          return a.disease.localeCompare(b.disease);
+        });
         setSamples(nextSamples);
         if (nextSamples.length > 0) {
           setSelectedModality(nextSamples[0].disease);
@@ -130,7 +147,8 @@ export default function Upload() {
     try {
       setError("");
       const filename = `${selectedModality || "sample"}.jpg`;
-      const file = await loadSampleAsFile(url, filename);
+      const relativeUrl = url.replace(/^https?:\/\/[^\/]+/, "");
+      const file = await loadSampleAsFile(relativeUrl, filename);
       handleFileSelection(file);
     } catch (sampleError) {
       setError(sampleError.message || "Unable to load this sample.");
@@ -207,10 +225,10 @@ export default function Upload() {
   };
 
   return (
-    <div className="py-8">
+    <div className="py-8 space-y-8 max-w-6xl mx-auto">
       <SectionHeader
-        title="Pipeline Upload Workspace"
-        subtitle="Use the Django-integrated analysis flow with modality samples, router recommendation, full analysis, report generation, and saved crop support."
+        title="Medical Scan Analysis"
+        subtitle="Upload your medical scan or choose a sample scan to get AI-powered diagnostics, reports, and insights."
       />
 
       {error && (
@@ -219,70 +237,73 @@ export default function Upload() {
         </div>
       )}
 
-      <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-        <section className="space-y-6">
-          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#7d1f3f]/70">Step 1</p>
-                <h2 className="mt-2 text-2xl font-bold text-[#7d1f3f]">Select Modality Samples</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-                  Each modality includes five scrollable sample images. Pick a modality, preview samples, or upload your own image while keeping the Radisist workflow and theme intact.
-                </p>
-              </div>
-              <div className="rounded-2xl bg-[#f8eff3] px-4 py-3 text-sm font-semibold text-[#7d1f3f]">
-                {selectedSampleGroup?.specialist || "AI-ready workflow"}
-              </div>
+      <div className="space-y-6 min-w-0">
+        {/* Step 1: Choose a Scan Modality */}
+        <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#7d1f3f]/70">Step 1</p>
+              <h2 className="mt-2 text-2xl font-bold text-[#7d1f3f]">Choose a Scan Modality</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
+                Select your scan type below to view sample scans or compare them with your own uploaded image.
+              </p>
             </div>
-
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {samples.map((modality) => (
-                <button
-                  key={modality.disease}
-                  type="button"
-                  onClick={() => setSelectedModality(modality.disease)}
-                  className={`shrink-0 rounded-2xl px-5 py-3 text-sm font-bold transition ${selectedModality === modality.disease ? "bg-[#7d1f3f] text-white shadow-[0_10px_30px_rgba(125,31,63,0.24)]" : "border border-gray-100 bg-white text-gray-500 hover:border-[#7d1f3f]/25 hover:text-[#7d1f3f]"}`}
-                >
-                  {formatLabel(modality.disease)}
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 rounded-[1.75rem] bg-[#fcfbfd] p-5">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900">Scrollable Samples</h3>
-                  <p className="text-sm text-gray-500">Click any sample to load it directly into the analysis workspace.</p>
-                </div>
-              </div>
-
-              {samplesLoading ? (
-                <div className="flex min-h-[140px] items-center justify-center text-gray-400">
-                  <Loader2 className="animate-spin" />
-                </div>
-              ) : (
-                <div className="flex gap-4 overflow-x-auto pb-2">
-                  {(selectedSampleGroup?.thumbnails || []).map((url, index) => (
-                    <button
-                      key={`${url}-${index}`}
-                      type="button"
-                      onClick={() => handleSampleClick(url)}
-                      className="group shrink-0 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:border-[#7d1f3f]/25 hover:shadow-lg"
-                    >
-                      <img src={url} alt={`${selectedModality}-${index}`} className="h-36 w-36 object-cover transition duration-500 group-hover:scale-105" />
-                    </button>
-                  ))}
-                </div>
-              )}
+            <div className="rounded-2xl bg-[#f8eff3] px-4 py-3 text-sm font-semibold text-[#7d1f3f]">
+              {selectedSampleGroup?.specialist || "AI-ready workflow"}
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+            {samples.map((modality) => (
+              <button
+                key={modality.disease}
+                type="button"
+                onClick={() => setSelectedModality(modality.disease)}
+                className={`shrink-0 rounded-2xl px-5 py-3 text-sm font-bold transition ${selectedModality === modality.disease ? "bg-[#7d1f3f] text-white shadow-[0_10px_30px_rgba(125,31,63,0.24)]" : "border border-gray-100 bg-white text-gray-500 hover:border-[#7d1f3f]/25 hover:text-[#7d1f3f]"}`}
+              >
+                {formatLabel(modality.disease)}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-6 rounded-[1.75rem] bg-[#fcfbfd] p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">Sample Scans</h3>
+                <p className="text-sm text-gray-500">Click any sample scan below to load it directly into the workspace.</p>
+              </div>
+            </div>
+
+            {samplesLoading ? (
+              <div className="flex min-h-[140px] items-center justify-center text-gray-400">
+                <Loader2 className="animate-spin" />
+              </div>
+            ) : (
+              <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
+                {(selectedSampleGroup?.thumbnails || []).map((url, index) => (
+                  <button
+                    key={`${url}-${index}`}
+                    type="button"
+                    onClick={() => handleSampleClick(url)}
+                    className="group shrink-0 overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white shadow-sm transition hover:-translate-y-1 hover:border-[#7d1f3f]/25 hover:shadow-lg"
+                  >
+                    <img src={url.replace(/^https?:\/\/[^\/]+/, "")} alt={`${selectedModality}-${index}`} className="h-36 w-36 object-cover transition duration-500 group-hover:scale-105" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Step 2 & Step 3: Side by Side */}
+        <div className="grid gap-6 lg:grid-cols-2 items-start">
+          {/* Step 2: Upload scan */}
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full flex flex-col justify-between">
+            <div>
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#7d1f3f]/70">Step 2</p>
-                  <h2 className="mt-2 text-2xl font-bold text-[#7d1f3f]">Upload Or Preview Image</h2>
+                  <h2 className="mt-2 text-2xl font-bold text-[#7d1f3f]">Upload Your Medical Scan</h2>
                 </div>
                 {previewUrl && (
                   <button
@@ -312,9 +333,9 @@ export default function Upload() {
                 ) : (
                   <>
                     <ImagePlus className="h-12 w-12 text-[#7d1f3f]" />
-                    <h3 className="mt-4 text-xl font-bold text-[#7d1f3f]">Drag, browse, or load a sample image</h3>
+                    <h3 className="mt-4 text-xl font-bold text-[#7d1f3f]">Drag & drop or browse to upload your scan</h3>
                     <p className="mt-2 max-w-md text-sm leading-6 text-gray-500">
-                      Supported formats include JPG, PNG, BMP, TIFF, and DICOM. The same upload will be used for router recommendation and final analysis.
+                      Supports DICOM, JPG, PNG, BMP, and TIFF files. You can also select one of the sample scans above to test.
                     </p>
                   </>
                 )}
@@ -323,8 +344,8 @@ export default function Upload() {
               <textarea
                 value={clinicalNotes}
                 onChange={(event) => setClinicalNotes(event.target.value)}
-                placeholder="Optional clinical context, radiology notes, or symptoms for this scan..."
-                className="mt-5 min-h-[120px] w-full rounded-[1.75rem] border border-gray-100 bg-[#fcfbfd] px-5 py-4 text-sm text-gray-700 outline-none transition focus:border-[#7d1f3f]/25"
+                placeholder="Optional patient clinical history, symptoms, or radiologist notes..."
+                className="mt-5 min-h-[120px] w-full rounded-[1.75rem] border border-gray-100 bg-[#fcfbfd] px-5 py-4 text-sm text-gray-700 outline-none transition focus:border-[#7d1f3f]/25 resize-none"
               />
 
               {pendingCrop && (
@@ -333,12 +354,15 @@ export default function Upload() {
                 </div>
               )}
             </div>
+          </div>
 
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          {/* Step 3: Run analysis */}
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full flex flex-col justify-between">
+            <div>
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#7d1f3f]/70">Step 3</p>
-              <h2 className="mt-2 text-2xl font-bold text-[#7d1f3f]">Route And Analyze</h2>
+              <h2 className="mt-2 text-2xl font-bold text-[#7d1f3f]">AI Diagnosis & Analysis</h2>
               <p className="mt-2 text-sm leading-6 text-gray-500">
-                First run the router recommendation, then choose the disease branch if needed, and finally launch the full Django-based analysis pipeline.
+                Automatically detect the scan modality and run the diagnostic AI models to generate a structured medical report.
               </p>
 
               <div className="mt-6 space-y-4">
@@ -349,7 +373,7 @@ export default function Upload() {
                   className="inline-flex w-full items-center justify-center gap-3 rounded-2xl border border-[#7d1f3f]/20 bg-[#f8eff3] px-4 py-4 text-sm font-bold text-[#7d1f3f] transition hover:border-[#7d1f3f]/40 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {routeLoading ? <Loader2 className="animate-spin" size={18} /> : <SearchCheck size={18} />}
-                  Run Recommendation Router
+                  Detect Scan Modality
                 </button>
 
                 <button
@@ -359,14 +383,14 @@ export default function Upload() {
                   className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-[#7d1f3f] px-4 py-4 text-sm font-bold text-white transition hover:bg-[#63172f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {analyzeLoading || cropSaving ? <Loader2 className="animate-spin" size={18} /> : <BrainCircuit size={18} />}
-                  Analyze Image Function
+                  Start AI Diagnostics
                 </button>
               </div>
 
               <div className="mt-6 rounded-[1.75rem] bg-[#fcfbfd] p-5">
                 <div className="flex items-center gap-3 text-[#7d1f3f]">
                   <Sparkles size={18} />
-                  <p className="text-sm font-bold uppercase tracking-[0.2em]">Router Result</p>
+                  <p className="text-sm font-bold uppercase tracking-[0.2em]">Modality Detection Result</p>
                 </div>
 
                 {routingResult ? (
@@ -434,15 +458,17 @@ export default function Upload() {
                   </div>
                 ) : (
                   <p className="mt-4 text-sm leading-6 text-gray-500">
-                    No recommendation has been generated yet. Run the router to see the modality glow result and the disease branch that the analysis should follow.
+                    No detection results generated yet. Click "Detect Scan Modality" above to identify the scan type and configure the AI model path.
                   </p>
                 )}
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        <aside className="space-y-6">
+        {/* Workflow & What You Get: side-by-side at the end */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Workflow */}
           <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-[#7d1f3f]/70">Workflow</p>
             <div className="mt-5 space-y-4">
@@ -462,6 +488,7 @@ export default function Upload() {
             </div>
           </div>
 
+          {/* What You Get */}
           <div className="rounded-[2rem] border border-gray-100 bg-gradient-to-br from-[#7d1f3f] to-[#9f3257] p-6 text-white shadow-[0_14px_40px_rgba(125,31,63,0.18)]">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/70">What You Get</p>
             <div className="mt-5 space-y-4 text-sm leading-6 text-white/90">
@@ -479,7 +506,7 @@ export default function Upload() {
               </div>
             </div>
           </div>
-        </aside>
+        </div>
       </div>
 
       <ImageExpandModal

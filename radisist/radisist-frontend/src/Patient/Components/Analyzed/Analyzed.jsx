@@ -19,8 +19,8 @@ import ImageExpandModal from "../ImageExpandModal";
 import { savePipelineCrop } from "../../../api/pipeline";
 
 const tabs = [
-  { id: "explanation", label: "Explanation", icon: Sparkles },
   { id: "analysis", label: "Analysis", icon: BrainCircuit },
+  { id: "explanation", label: "Explanation", icon: Sparkles },
   { id: "report", label: "Report", icon: FileText },
   { id: "ai-report", label: "AI Report", icon: Activity },
 ];
@@ -59,13 +59,21 @@ function toBase64Src(value) {
 function TabButton({ tab, activeTab, onClick }) {
   const Icon = tab.icon;
   const isActive = activeTab === tab.id;
+  const shouldBlink = tab.id === "explanation" && activeTab !== "explanation";
   return (
     <button
       type="button"
       onClick={() => onClick(tab.id)}
       className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition ${isActive ? "bg-[#7d1f3f] text-white shadow-[0_10px_24px_rgba(125,31,63,0.18)]" : "border border-gray-100 bg-white text-gray-500 hover:border-[#7d1f3f]/25 hover:text-[#7d1f3f]"}`}
     >
-      <Icon size={16} /> {tab.label}
+      <Icon size={16} />
+      {tab.label}
+      {shouldBlink && (
+        <span className="relative flex h-2 w-2 ml-1">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#7d1f3f] opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#7d1f3f]"></span>
+        </span>
+      )}
     </button>
   );
 }
@@ -165,7 +173,7 @@ export default function Analyzed() {
   const location = useLocation();
   const navigate = useNavigate();
   const [scanData, setScanData] = useState(location.state?.scanData || null);
-  const [activeTab, setActiveTab] = useState("explanation");
+  const [activeTab, setActiveTab] = useState("analysis");
   const [activeFindingIndex, setActiveFindingIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [cropSaving, setCropSaving] = useState(false);
@@ -414,7 +422,7 @@ export default function Analyzed() {
           </div>
         )}
 
-        <div className="grid gap-4 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-fade-in">
           <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">Detected Modality</p>
             <p className="mt-3 text-xl font-bold text-[#7d1f3f]">{scanData.routed_modality || "Not stored"}</p>
@@ -427,6 +435,12 @@ export default function Analyzed() {
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">Predicted Class</p>
             <p className={`mt-3 text-xl font-bold ${needsReview ? "text-amber-700" : "text-gray-900"}`}>
               {formatLabel(scanData.display_prediction || scanData.ai_predicted_class)}
+            </p>
+          </div>
+          <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
+            <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">Radiologist Review</p>
+            <p className={`mt-3 text-xl font-bold ${needsReview ? "text-amber-600" : "text-emerald-600"}`}>
+              {needsReview ? "Required" : "Not Required"}
             </p>
           </div>
           <div className="rounded-[1.5rem] bg-[#7d1f3f] p-5 text-white">
@@ -465,7 +479,7 @@ export default function Analyzed() {
               </button>
             </div>
 
-            <img src={scanData.image} alt={scanData.title || "Analyzed scan"} className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
+            <img src={scanData.image ? scanData.image.replace(/^https?:\/\/[^\/]+/, "") : ""} alt={scanData.title || "Analyzed scan"} className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
 
             <div className="mt-5 grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-[#fcfbfd] px-4 py-3">
@@ -529,7 +543,7 @@ export default function Analyzed() {
 
       <ImageExpandModal
         isOpen={modalOpen}
-        imageSrc={scanData.image}
+        imageSrc={scanData.image ? scanData.image.replace(/^https?:\/\/[^\/]+/, "") : ""}
         onClose={() => setModalOpen(false)}
         onSaveCrop={handleSaveCrop}
         saving={cropSaving}

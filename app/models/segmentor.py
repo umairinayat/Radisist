@@ -24,6 +24,10 @@ SEGMENTATION_MODELS = {
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
+LEGACY_NORMALIZATION = {
+    "endoscopy": ([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]),
+}
+
 SEGFORMER_ENC_CHANNELS = {
     "segformer_b0": 256,
     "segformer_b1": 256,
@@ -128,8 +132,10 @@ class DiseaseSegmentor:
 
         arch, encoder = _detect_seg_arch(checkpoint, model_state)
         img_size = checkpoint.get("img_size", 256)
-        mean = checkpoint.get("normalization_mean") or IMAGENET_MEAN
-        std = checkpoint.get("normalization_std") or IMAGENET_STD
+        mean = checkpoint.get("normalization_mean")
+        std = checkpoint.get("normalization_std")
+        if mean is None:
+            mean, std = LEGACY_NORMALIZATION.get(disease, (IMAGENET_MEAN, IMAGENET_STD))
 
         logger.info(f"Loading {disease} segmentor: arch={arch}, encoder={encoder}, size={img_size}")
 

@@ -22,10 +22,10 @@ def _resolve_target_layers(model, arch: str):
         return [model.layer4[-1]], None
 
     if arch in ("densenet121", "densenet"):
-        return [model.features.denseblock4.denselayer16.norm2], None
+        return [model.features.norm5], None
 
     if arch.startswith("convnext"):
-        return [model.features[7][-1].block[3]], None
+        return [model.features[7][-1].block[0]], None
 
     last_conv = _find_last_conv(model)
     if last_conv is not None:
@@ -72,10 +72,8 @@ def generate_gradcam(
         return {"heatmap_base64": None, "error": "grad-cam not installed"}
 
     img_tensor = preprocess(image).unsqueeze(0).to(device)
-    preprocess_size = getattr(preprocess, "resize_size", None) or (224, 224)
-    if isinstance(preprocess_size, int):
-        preprocess_size = (preprocess_size, preprocess_size)
-    img_np = np.array(image.resize(preprocess_size).convert("RGB")) / 255.0
+    _, _, img_h, img_w = img_tensor.shape
+    img_np = np.array(image.resize((img_w, img_h)).convert("RGB")) / 255.0
 
     try:
         target_layers, mode = _resolve_target_layers(model, arch)

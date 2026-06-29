@@ -72,18 +72,6 @@ DISEASE_MODELS = {
         "multilabel": False,
         "specialist": "Thyroid Specialist",
     },
-    "fundus_retinography": {
-        "classes": ["no_retinal_disease", "retinal_disease"],
-        "has_segmentation": False,
-        "multilabel": False,
-        "specialist": "Ophthalmology Specialist",
-    },
-    "microscopy": {
-        "classes": ["metastasis", "no_metastasis"],
-        "has_segmentation": False,
-        "multilabel": False,
-        "specialist": "Histopathology Specialist",
-    },
 }
 
 MODALITY_TO_DISEASE = {
@@ -92,6 +80,6 @@ MODALITY_TO_DISEASE = {
     2: ["chest_xray"],                             # X-Ray
     3: ["breast_ultrasound", "thyroid_ultrasound"],# Ultrasound
     4: ["mammography"],                            # Mammography
-    5: ["fundus_retinography"],                    # Fundus/Retinography
-    6: ["microscopy"],                             # Microscopy
+    # 5 (Fundus/Retinography) and 6 (Microscopy) removed per request -
+    # router still outputs them but no disease model is attached.
 }

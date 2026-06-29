@@ -51,7 +51,9 @@ async def api_samples(limit: int = 5):
     for disease_dir in sorted(SAMPLES_DIR.iterdir()):
         if not disease_dir.is_dir():
             continue
-        info = DISEASE_MODELS.get(disease_dir.name, {})
+        if disease_dir.name not in DISEASE_MODELS:
+            continue
+        info = DISEASE_MODELS[disease_dir.name]
         imgs = sorted(disease_dir.glob("sample_*.jpg"))[:limit]
         if not imgs:
             continue

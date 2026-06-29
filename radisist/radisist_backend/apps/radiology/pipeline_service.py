@@ -92,7 +92,10 @@ def get_sample_gallery(limit: int = 5) -> list[dict]:
         if not disease_dir.is_dir():
             continue
 
-        info = DISEASE_MODELS.get(disease_dir.name, {})
+        if disease_dir.name not in DISEASE_MODELS:
+            continue
+
+        info = DISEASE_MODELS[disease_dir.name]
         images = sorted(disease_dir.glob("sample_*.jpg"))[:limit]
         if not images:
             continue

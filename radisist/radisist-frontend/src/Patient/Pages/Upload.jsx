@@ -76,9 +76,10 @@ export default function Upload() {
         const modalityOrder = [
           "mammography",
           "breast_ultrasound",
+          "thyroid_ultrasound",
           "chest_xray",
+          "dermatology",
           "endoscopy",
-          "fundus_retinography",
         ];
         nextSamples.sort((a, b) => {
           const indexA = modalityOrder.indexOf(a.disease);

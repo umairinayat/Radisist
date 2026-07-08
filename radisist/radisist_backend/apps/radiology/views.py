@@ -238,6 +238,20 @@ class ScanViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(scan)
         return Response(serializer.data)
 
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated], url_path='request-review')
+    def request_review(self, request, pk=None):
+        scan = self.get_object()
+        if not isinstance(scan.analysis_metadata, dict):
+            scan.analysis_metadata = {}
+        
+        scan.analysis_metadata["manual_review_requested"] = True
+        scan.save(update_fields=["analysis_metadata"])
+        
+        Notification.notify_radiologists_scan_needs_review(scan, {"warnings": ["Patient requested manual review."]})
+        
+        serializer = self.get_serializer(scan)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'], permission_classes=[IsRadiologist], url_path='accept-case')
     def accept_case(self, request, pk=None):
         scan = self.get_object()

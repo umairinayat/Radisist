@@ -9,6 +9,7 @@ import {
 import ProtectedRoute from "./ProtectedRoute.jsx";
 
 // ---------------- LANDING PAGE ----------------
+import PublicLayout from "../LandingPage/Pages/PublicLayout.jsx";
 import MainLayout from "../LandingPage/Pages/MainLayout.jsx";
 import AboutPage from "../LandingPage/Pages/AboutPage.jsx";
 import MissionPage from "../LandingPage/Pages/MissionPage.jsx";
@@ -33,10 +34,16 @@ import DashboardLayout from "../Radiologist/DashboardLayout.jsx";
 
 const router = createBrowserRouter([
   // LANDING PAGE
-  { path: "/", element: <LandingEntry /> },
-  { path: "/about", element: <AboutPage /> },
-  { path: "/mission", element: <MissionPage /> },
-  { path: "/contact", element: <ContactPage /> },
+  {
+    path: "/",
+    element: <PublicLayout />,
+    children: [
+      { path: "", element: <LandingEntry /> },
+      { path: "about", element: <AboutPage /> },
+      { path: "mission", element: <MissionPage /> },
+      { path: "contact", element: <ContactPage /> },
+    ],
+  },
 
   // Dashboards Redirection
   {

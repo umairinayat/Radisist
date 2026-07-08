@@ -4,8 +4,32 @@
   font-family: "Poppins", sans-serif !important;
 }
 
-html {
-  scroll-behavior: smooth;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Lenis smooth scrolling rules */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }
 
 @keyframes shimmer {
@@ -73,4 +97,40 @@ html {
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Subtle bouncing click feedback scale animation for all buttons, links, and interactive elements */
+button, a, .cursor-pointer {
+  transition: transform 0.25s cubic-bezier(0.34, 1.6, 0.64, 1), background-color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease;
+}
+button:active, a:active, .cursor-pointer:active {
+  transform: scale(0.96) !important;
+}
+
+/* ECG heartbeat line drawing animation */
+@keyframes draw-ecg {
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ecg-line {
+  stroke-dasharray: 200;
+  animation: draw-ecg 2.2s linear infinite;
+}
+
+/* Sweeping laser scan animation keyframe */
+@keyframes scan {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(100vh);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram } from 'react-icons/fa';
 import { MdEmail, MdPhone, MdLocationOn } from 'react-icons/md';
+import Logo from "../Components/Logo";
 
 function Footer() {
     const currentYear = new Date().getFullYear();
@@ -38,9 +39,7 @@ function Footer() {
 
                     {/* Brand Section */}
                     <div className="lg:col-span-1">
-                        <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-[#EDEBFF] to-[#C9DCF6] bg-clip-text text-transparent">
-                            RADISIST
-                        </h2>
+                        <Logo darkBackground={true} />
                         <p className="mt-4 text-gray-400 text-sm">
                             AI-powered radiology diagnostics that deliver fast, accurate, and reliable results.
                             Bridging technology with medical expertise.

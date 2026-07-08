@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../../index.css";
+import Logo from "../Components/Logo";
 
 const navItems = [
   { label: "Home", to: "/" },
@@ -46,18 +47,18 @@ function Header() {
   return (
     <nav
       data-nav-version="route-links-20260503"
-      className={`relative flex h-20 items-center justify-between px-6 transition-all duration-300 sm:px-8 md:h-24 md:px-12 ${
-        menuOpen ? "bg-[#6C1B36] shadow-none" : "bg-white"
-      } lg:bg-white`}
+      className={`sticky top-0 z-[100] flex h-20 items-center justify-between px-6 transition-all duration-300 sm:px-8 md:h-24 md:px-12 border-b ${menuOpen
+        ? "bg-[#6C1B36] border-transparent shadow-none"
+        : "bg-white/85 backdrop-blur-md border-neutral-100/80 shadow-sm"
+        }`}
     >
       <Link
         to="/"
         onClick={() => setMenuOpen(false)}
-        className={`z-[60] text-2xl font-black transition-all duration-500 md:text-3xl ${
-          menuOpen ? "fixed left-6 top-6 text-white" : "text-black"
-        }`}
+        className={`z-[60] flex items-center transition-all duration-500 ${menuOpen ? "fixed left-6 top-6" : ""
+          }`}
       >
-        Radisist <span className="text-amber-500">.</span>
+        <Logo menuOpen={menuOpen} />
       </Link>
 
       <div className="hidden flex-1 items-center justify-between lg:flex">
@@ -67,11 +68,10 @@ function Header() {
               <button
                 type="button"
                 onClick={() => handleNavClick(item.to)}
-                className={`relative cursor-pointer transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-left after:transition-transform after:duration-300 ${
-                  location.pathname === item.to
-                    ? "text-[#780F32] after:scale-x-100 after:bg-[#780F32]"
-                    : "text-neutral-900 after:scale-x-0 after:bg-neutral-800 hover:after:scale-x-100"
-                }`}
+                className={`relative cursor-pointer transition-colors duration-300 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:w-full after:origin-left after:transition-transform after:duration-300 ${location.pathname === item.to
+                  ? "text-[#780F32] after:scale-x-100 after:bg-[#780F32]"
+                  : "text-neutral-900 after:scale-x-0 after:bg-neutral-800 hover:after:scale-x-100"
+                  }`}
               >
                 {item.label}
               </button>
@@ -125,28 +125,24 @@ function Header() {
         onClick={() => setMenuOpen((open) => !open)}
       >
         <span
-          className={`block h-[2px] w-6 transition-all duration-300 ${
-            menuOpen ? "translate-y-[6px] rotate-45 bg-white" : "bg-black"
-          }`}
+          className={`block h-[2px] w-6 transition-all duration-300 ${menuOpen ? "translate-y-[6px] rotate-45 bg-white" : "bg-black"
+            }`}
         ></span>
         <span
-          className={`block h-[2px] w-6 transition-all duration-300 ${
-            menuOpen ? "opacity-0" : "bg-black"
-          }`}
+          className={`block h-[2px] w-6 transition-all duration-300 ${menuOpen ? "opacity-0" : "bg-black"
+            }`}
         ></span>
         <span
-          className={`block h-[2px] w-6 transition-all duration-300 ${
-            menuOpen ? "-translate-y-[6px] -rotate-45 bg-white" : "bg-black"
-          }`}
+          className={`block h-[2px] w-6 transition-all duration-300 ${menuOpen ? "-translate-y-[6px] -rotate-45 bg-white" : "bg-black"
+            }`}
         ></span>
       </button>
 
       <div
-        className={`fixed left-0 top-0 z-50 flex h-full w-full flex-col justify-between bg-[#6C1B36] transition-all duration-500 ease-in-out ${
-          menuOpen
-            ? "translate-y-0 opacity-100 pointer-events-auto"
-            : "-translate-y-5 opacity-0 pointer-events-none"
-        }`}
+        className={`fixed left-0 top-0 z-50 flex h-full w-full flex-col justify-between bg-[#6C1B36] transition-all duration-500 ease-in-out ${menuOpen
+          ? "translate-y-0 opacity-100 pointer-events-auto"
+          : "-translate-y-5 opacity-0 pointer-events-none"
+          }`}
       >
         <ul className="flex flex-1 flex-col items-start justify-center gap-2 px-10 text-3xl font-medium text-white sm:gap-8 sm:text-4xl md:gap-10 md:px-20 md:text-5xl">
           {navItems.map((item) => (
@@ -154,9 +150,8 @@ function Header() {
               <button
                 type="button"
                 onClick={() => handleNavClick(item.to)}
-                className={`block cursor-pointer transition-colors ${
-                  location.pathname === item.to ? "text-[#C9DCF6]" : "text-white"
-                }`}
+                className={`block cursor-pointer transition-colors ${location.pathname === item.to ? "text-[#C9DCF6]" : "text-white"
+                  }`}
               >
                 {item.label}
               </button>

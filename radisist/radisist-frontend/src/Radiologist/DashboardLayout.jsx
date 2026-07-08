@@ -50,6 +50,7 @@ function getSafety(scan) {
   return scan?.safety || scan?.analysis_metadata?.safety || scan?.report?.structured_report?.safety || {};
 }
 
+// Case Status Helper
 function getCaseStatus(scan) {
   if (scan?.report?.is_final) {
     return "Finalized";
@@ -63,56 +64,69 @@ function getCaseStatus(scan) {
   return "Awaiting Review";
 }
 
+// Status styles mapping
 function statusStyles(status) {
   switch (status) {
     case "Finalized":
-      return "bg-emerald-50 text-emerald-700 border-emerald-100";
+      return "bg-emerald-50 text-emerald-700 border-emerald-100/80";
     case "Accepted":
-      return "bg-blue-50 text-blue-700 border-blue-100";
+      return "bg-blue-50 text-blue-700 border-blue-100/80";
     case "Needs Review":
-      return "bg-amber-50 text-amber-700 border-amber-100";
+      return "bg-amber-50 text-amber-700 border-amber-100/80";
     default:
-      return "bg-gray-50 text-gray-600 border-gray-100";
+      return "bg-neutral-50 text-neutral-600 border-neutral-100/80";
   }
 }
 
+function toBase64Src(value) {
+  if (!value) return "";
+  return value.startsWith("data:") ? value : `data:image/png;base64,${value}`;
+}
+
+// Reusable Patient Case Card Component
 function CaseCard({ scan, active, onClick }) {
   const status = getCaseStatus(scan);
   const safety = getSafety(scan);
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full rounded-[1.75rem] border p-5 text-left transition hover:-translate-y-0.5 hover:shadow-md ${
-        active ? "border-[#7d1f3f] bg-[#fbf4f7] shadow-md" : "border-gray-100 bg-white"
+      className={`w-full rounded-2xl border text-left transition-all duration-300 relative overflow-hidden p-5 outline-none ${
+        active
+          ? "border-[#780F32] bg-[#FDF9FA] shadow-[0_12px_25px_rgba(120,15,50,0.06)] scale-[1.01]"
+          : "border-neutral-100 bg-white hover:border-neutral-200/80 hover:shadow-[0_10px_20px_rgba(0,0,0,0.03)] hover:-translate-y-[1px]"
       }`}
     >
+      {/* Active Sidebar Stripe Accent */}
+      {active && <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#780F32] rounded-r-md" />}
+
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">
+          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
             {formatLabel(scan.routed_modality || scan.scan_type)}
           </p>
-          <h3 className="mt-2 truncate text-lg font-black text-gray-900">{scan.title || `Scan #${scan.id}`}</h3>
-          <p className="mt-1 text-sm text-gray-500">{scan.patient_name || "Patient unavailable"}</p>
+          <h3 className="mt-2 truncate text-base font-bold text-neutral-900">{scan.title || `Scan #${scan.id}`}</h3>
+          <p className="mt-1 text-sm text-neutral-500">{scan.patient_name || "Patient unavailable"}</p>
         </div>
-        <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-bold ${statusStyles(status)}`}>
+        <span className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold ${statusStyles(status)}`}>
           {status}
         </span>
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-white/80 px-4 py-3">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">AI Label</p>
-          <p className="mt-2 text-sm font-bold text-[#7d1f3f]">{formatLabel(scan.display_prediction || scan.ai_predicted_class)}</p>
+        <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/40 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">AI Label</p>
+          <p className="mt-1.5 text-sm font-bold text-[#780F32]">{formatLabel(scan.display_prediction || scan.ai_predicted_class)}</p>
         </div>
-        <div className="rounded-2xl bg-white/80 px-4 py-3">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Confidence</p>
-          <p className="mt-2 text-sm font-bold text-gray-800">{formatPercent(scan.ai_confidence)}</p>
+        <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/40 px-4 py-3">
+          <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Confidence</p>
+          <p className="mt-1.5 text-sm font-bold text-neutral-800">{formatPercent(scan.ai_confidence)}</p>
         </div>
       </div>
 
       {safety?.needs_radiologist_review && (
-        <div className="mt-4 rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-semibold leading-5 text-amber-800">
+        <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50/50 px-4 py-3 text-xs font-semibold leading-relaxed text-amber-800">
           {safety.warnings?.[0] || "Low-confidence safety gate triggered."}
         </div>
       )}
@@ -135,6 +149,7 @@ export default function DashboardLayout() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [activeLayer, setActiveLayer] = useState("original");
 
   const userName = localStorage.getItem("full_name") || "Radiologist";
   const initials = userName
@@ -185,6 +200,7 @@ export default function DashboardLayout() {
   useEffect(() => {
     setDraftContent(selectedScan?.report?.content || selectedScan?.report?.structured_report?.summary || "");
     setDraftImpression(selectedScan?.report?.impression || selectedScan?.report?.structured_report?.summary || "");
+    setActiveLayer("original");
   }, [selectedScan?.id, selectedScan?.report]);
 
   const filteredScans = useMemo(() => {
@@ -213,6 +229,17 @@ export default function DashboardLayout() {
     const needsReview = scans.filter((scan) => getSafety(scan)?.needs_radiologist_review && !scan.report?.is_final).length;
     return { finalized, accepted, needsReview, total: scans.length };
   }, [scans]);
+
+  const previewImageSrc = useMemo(() => {
+    if (!selectedScan) return "";
+    if (activeLayer === "segmentation" && selectedScan.segmentation_overlay_base64) {
+      return toBase64Src(selectedScan.segmentation_overlay_base64);
+    }
+    if (activeLayer === "heatmap" && selectedScan.xai_heatmap_base64) {
+      return toBase64Src(selectedScan.xai_heatmap_base64);
+    }
+    return selectedScan.image;
+  }, [selectedScan, activeLayer]);
 
   const replaceScan = (nextScan) => {
     setScans((current) => current.map((scan) => (scan.id === nextScan.id ? nextScan : scan)));
@@ -332,7 +359,7 @@ export default function DashboardLayout() {
         await markNotificationRead(notification.id);
         await loadNotifications();
       } catch {
-        // Notification read state is non-critical for case review.
+        // Non-critical for notification flow
       }
     }
     if (notification.scan) {
@@ -361,132 +388,150 @@ export default function DashboardLayout() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#fbfafb] text-[#7d1f3f]">
-        <Loader2 className="animate-spin" size={34} />
+      <div className="flex min-h-screen items-center justify-center bg-[#FFFDFE] text-[#780F32]">
+        <Loader2 className="animate-spin" size={32} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fbfafb] via-white to-[#f8eff3]">
-      <header className="sticky top-0 z-30 border-b border-gray-100 bg-white/85 px-4 py-4 shadow-sm backdrop-blur-xl sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#FFFDFE] relative overflow-hidden font-normal text-[#17121A]">
+      {/* Dynamic Background Blur Layers */}
+      <div className="bg-[#780F32]/5 w-[500px] h-[500px] rounded-full blur-[120px] fixed top-[-200px] right-[-200px] pointer-events-none z-0" />
+      <div className="bg-[#C9DCF6]/10 w-[600px] h-[600px] rounded-full blur-[150px] fixed bottom-[-300px] left-[-300px] pointer-events-none z-0" />
+
+      {/* Glassmorphic Navbar Header */}
+      <header className="sticky top-0 z-30 border-b border-neutral-100 bg-white/80 px-4 py-4 shadow-sm backdrop-blur-md sm:px-6 lg:px-8 relative">
+        <div className="flex flex-wrap items-center justify-between gap-4 max-w-7xl mx-auto">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#7d1f3f]/70">Radisist Review Desk</p>
-            <h1 className="mt-2 text-2xl font-black text-gray-950 sm:text-3xl">Radiologist Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-500">Claim AI-assisted cases, edit draft reports, and send final summaries to patients.</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#780F32]/80">Radisist Review Desk</p>
+            <h1 className="mt-1 text-2xl font-bold text-neutral-900 tracking-tight sm:text-3xl">Radiologist Dashboard</h1>
+            <p className="mt-1 text-sm text-neutral-500">Claim AI-assisted cases, edit draft reports, and send final summaries to patients.</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="relative">
-            <button
-              type="button"
-              onClick={() => setNotificationsOpen((open) => !open)}
-              className="relative rounded-2xl border border-gray-100 bg-white p-3 text-gray-500 transition hover:text-[#7d1f3f]"
-            >
-              <Bell size={20} />
-              {unreadCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-xs font-bold text-white">
-                  {unreadCount}
-                </span>
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen((open) => !open)}
+                className="relative rounded-2xl border border-neutral-100 bg-white p-3 text-neutral-500 transition-all duration-200 hover:text-[#780F32] hover:border-[#780F32]/30"
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1.5 text-[10px] font-bold text-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              {notificationsOpen && (
+                <div className="absolute right-0 top-14 z-50 w-[min(92vw,380px)] rounded-[1.5rem] border border-neutral-100 bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+                  <div className="flex items-center justify-between gap-3 pb-2 border-b border-neutral-50">
+                    <h3 className="text-sm font-bold text-neutral-900">Notifications</h3>
+                    <button
+                      type="button"
+                      onClick={handleMarkAllRead}
+                      className="text-xs font-bold text-[#780F32] hover:underline"
+                    >
+                      Mark all read
+                    </button>
+                  </div>
+                  <div className="mt-3 max-h-80 space-y-2 overflow-auto no-scrollbar">
+                    {notifications.length ? (
+                      notifications.slice(0, 8).map((notification) => (
+                        <button
+                          key={notification.id}
+                          type="button"
+                          onClick={() => handleNotificationClick(notification)}
+                          className={`block w-full rounded-xl px-4 py-3 text-left text-sm transition-colors ${
+                            notification.is_read ? "bg-neutral-50/50 text-neutral-600" : "bg-amber-50/60 text-amber-800"
+                          }`}
+                        >
+                          <p className="font-semibold text-neutral-900">{notification.title}</p>
+                          <p className="mt-1 line-clamp-2 text-xs leading-relaxed opacity-90">{notification.message}</p>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="rounded-xl bg-neutral-50/50 px-4 py-6 text-center text-xs text-neutral-400">
+                        No notifications yet.
+                      </p>
+                    )}
+                  </div>
+                </div>
               )}
-            </button>
-            {notificationsOpen && (
-              <div className="absolute right-0 top-14 z-50 w-[min(92vw,380px)] rounded-[1.5rem] border border-gray-100 bg-white p-4 shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-black text-gray-950">Notifications</h3>
-                  <button
-                    type="button"
-                    onClick={handleMarkAllRead}
-                    className="text-xs font-bold text-[#7d1f3f]"
-                  >
-                    Mark all read
-                  </button>
-                </div>
-                <div className="mt-3 max-h-80 space-y-2 overflow-auto">
-                  {notifications.length ? (
-                    notifications.slice(0, 8).map((notification) => (
-                      <button
-                        key={notification.id}
-                        type="button"
-                        onClick={() => handleNotificationClick(notification)}
-                        className={`block w-full rounded-2xl px-4 py-3 text-left text-sm transition ${
-                          notification.is_read ? "bg-[#fcfbfd] text-gray-600" : "bg-amber-50 text-amber-800"
-                        }`}
-                      >
-                        <p className="font-black">{notification.title}</p>
-                        <p className="mt-1 line-clamp-2 text-xs leading-5">{notification.message}</p>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="rounded-2xl bg-[#fcfbfd] px-4 py-6 text-center text-sm text-gray-500">
-                      No notifications yet.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
             </div>
             <button
               type="button"
               onClick={handleLogout}
-              className="inline-flex items-center gap-2 rounded-2xl border border-gray-100 bg-white px-4 py-3 text-sm font-bold text-gray-500 transition hover:border-rose-100 hover:bg-rose-50 hover:text-rose-600"
+              className="inline-flex items-center gap-2 rounded-2xl border border-neutral-100 bg-white px-4 py-3 text-sm font-bold text-neutral-500 transition-all duration-200 hover:border-rose-100 hover:bg-rose-50/50 hover:text-rose-600"
             >
-              <LogOut size={18} /> Logout
+              <LogOut size={16} /> Logout
             </button>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#7d1f3f] text-sm font-black text-white shadow-lg shadow-[#7d1f3f]/20">
-              {initials || <User size={20} />}
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#780F32] to-[#5C0A25] text-sm font-semibold text-white shadow-md shadow-[#780F32]/10">
+              {initials || <User size={18} />}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="px-4 py-6 sm:px-6 lg:px-8">
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 relative z-10">
         {(error || notice) && (
-          <div className={`mb-6 rounded-[1.5rem] border px-5 py-4 text-sm font-semibold ${error ? "border-red-100 bg-red-50 text-red-700" : "border-emerald-100 bg-emerald-50 text-emerald-700"}`}>
+          <div className={`mb-6 rounded-2xl border px-5 py-4 text-sm font-semibold ${
+            error ? "border-red-100 bg-red-50/60 text-red-700" : "border-emerald-100 bg-emerald-50/60 text-emerald-700"
+          }`}>
             {error || notice}
           </div>
         )}
 
-        <div className="mb-6 grid gap-4 md:grid-cols-4">
+        {/* Top Statistics Cards */}
+        <div className="mb-6 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
           {[
-            { label: "Total Cases", value: stats.total, icon: FileText, tone: "text-[#7d1f3f]" },
+            { label: "Total Cases", value: stats.total, icon: FileText, tone: "text-[#780F32]" },
             { label: "Needs Review", value: stats.needsReview, icon: ShieldAlert, tone: "text-amber-600" },
             { label: "Accepted", value: stats.accepted, icon: Clock, tone: "text-blue-600" },
             { label: "Finalized", value: stats.finalized, icon: CheckCircle, tone: "text-emerald-600" },
           ].map((card) => {
             const Icon = card.icon;
             return (
-              <div key={card.label} className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <div
+                key={card.label}
+                className="rounded-[1.75rem] border border-neutral-100 bg-white/75 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.015)] backdrop-blur-sm transition-all duration-300 hover:shadow-[0_15px_30px_rgba(120,15,50,0.03)] hover:-translate-y-[2px]"
+              >
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-400">{card.label}</p>
-                  <Icon className={card.tone} size={22} />
+                  <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">{card.label}</p>
+                  <Icon className={card.tone} size={20} />
                 </div>
-                <p className="mt-4 text-4xl font-black text-gray-950">{card.value}</p>
+                <p className="mt-4 text-3xl font-bold text-neutral-900">{card.value}</p>
               </div>
             );
           })}
         </div>
 
+        {/* Sidebar & Core Panel Grid */}
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.45fr]">
-          <section className="rounded-[2rem] border border-gray-100 bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          
+          {/* LEFT COLUMN: Cases List */}
+          <section className="rounded-[1.75rem] border border-neutral-100 bg-white/75 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.015)] backdrop-blur-sm flex flex-col self-start">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#f8eff3] text-[#7d1f3f]">
-                <Stethoscope size={22} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F8EEF2] text-[#780F32]">
+                <Stethoscope size={20} />
               </div>
               <div>
-                <h2 className="text-xl font-black text-gray-950">Patient Cases</h2>
-                <p className="text-sm text-gray-500">Live Django scans and AI reports.</p>
+                <h2 className="text-lg font-bold text-neutral-900 tracking-tight">Patient Cases</h2>
+                <p className="text-xs text-neutral-400">Live Django scans and AI reports.</p>
               </div>
             </div>
 
+            {/* Filter Pill Tabs */}
             <div className="mt-5 flex flex-wrap gap-2">
               {filters.map((filter) => (
                 <button
                   key={filter}
                   type="button"
                   onClick={() => setActiveFilter(filter)}
-                  className={`rounded-2xl px-4 py-2 text-sm font-bold transition ${
-                    activeFilter === filter ? "bg-[#7d1f3f] text-white" : "border border-gray-100 bg-white text-gray-500 hover:border-[#7d1f3f]/20 hover:text-[#7d1f3f]"
+                  className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all duration-200 outline-none ${
+                    activeFilter === filter
+                      ? "bg-[#780F32] text-white shadow-sm shadow-[#780F32]/10"
+                      : "border border-neutral-100 bg-white text-neutral-500 hover:border-[#780F32]/30 hover:text-[#780F32]"
                   }`}
                 >
                   {filter}
@@ -494,18 +539,20 @@ export default function DashboardLayout() {
               ))}
             </div>
 
+            {/* Search Input */}
             <div className="relative mt-5">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={16} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search by patient, modality, model..."
-                className="w-full rounded-2xl border border-gray-100 bg-[#fcfbfd] py-3 pl-11 pr-4 text-sm outline-none transition focus:border-[#7d1f3f]/30"
+                className="w-full rounded-2xl border border-neutral-100 bg-neutral-50/50 py-3 pl-11 pr-4 text-xs outline-none transition-all duration-300 focus:border-[#780F32]/40 focus:ring-2 focus:ring-[#780F32]/5"
               />
             </div>
 
-            <div className="mt-5 max-h-[720px] space-y-4 overflow-auto pr-1">
+            {/* Cases Container */}
+            <div className="mt-5 max-h-[720px] space-y-4 overflow-auto pr-1 no-scrollbar">
               {filteredScans.length ? (
                 filteredScans.map((scan) => (
                   <CaseCard
@@ -516,38 +563,42 @@ export default function DashboardLayout() {
                   />
                 ))
               ) : (
-                <div className="rounded-[1.75rem] bg-[#fcfbfd] px-5 py-10 text-center text-sm text-gray-500">
+                <div className="rounded-2xl bg-neutral-50/30 border border-neutral-100/40 px-5 py-10 text-center text-xs text-neutral-400">
                   No cases match this filter.
                 </div>
               )}
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          {/* RIGHT COLUMN: Case Detail panel */}
+          <section className="rounded-[1.75rem] border border-neutral-100 bg-white/75 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.015)] backdrop-blur-sm">
             {selectedScan ? (
               <div className="space-y-6">
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                
+                {/* Case Title and Status */}
+                <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-neutral-50">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.3em] text-[#7d1f3f]/70">Case #{selectedScan.id}</p>
-                    <h2 className="mt-2 text-3xl font-black text-gray-950">{selectedScan.title || "Untitled Scan"}</h2>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-[#780F32]/80">Case #{selectedScan.id}</p>
+                    <h2 className="mt-1.5 text-2xl font-bold text-neutral-900 tracking-tight">{selectedScan.title || "Untitled Scan"}</h2>
+                    <p className="mt-1.5 text-xs text-neutral-400">
                       {selectedScan.patient_name || "Patient unavailable"} · {formatLabel(selectedScan.routed_modality || selectedScan.scan_type)}
                     </p>
                   </div>
-                  <span className={`rounded-full border px-4 py-2 text-sm font-black ${statusStyles(selectedStatus)}`}>
+                  <span className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold ${statusStyles(selectedStatus)}`}>
                     {selectedStatus}
                   </span>
                 </div>
 
+                {/* Safety Warning */}
                 {selectedSafety?.needs_radiologist_review && (
-                  <div className="rounded-[1.75rem] border border-amber-100 bg-amber-50 p-5">
+                  <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-5">
                     <div className="flex items-center gap-2 text-amber-800">
-                      <AlertCircle size={20} />
-                      <p className="text-sm font-black uppercase tracking-[0.2em]">Low-Confidence Safety Gate</p>
+                      <AlertCircle size={18} />
+                      <p className="text-xs font-bold uppercase tracking-wider">Low-Confidence Safety Gate</p>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {(selectedSafety.warnings || ["Needs radiologist review."]).map((warning) => (
-                        <span key={warning} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-amber-700">
+                        <span key={warning} className="rounded-full border border-amber-200/50 bg-white px-3 py-1 text-xs font-semibold text-amber-700">
                           {warning}
                         </span>
                       ))}
@@ -555,159 +606,215 @@ export default function DashboardLayout() {
                   </div>
                 )}
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
-                    <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-400">AI Display</p>
-                    <p className="mt-3 text-lg font-black text-[#7d1f3f]">{formatLabel(selectedScan.display_prediction || selectedScan.ai_predicted_class)}</p>
+                {/* AI Metrics Grid */}
+                <div className="rounded-2xl border border-neutral-100/50 bg-[#FDF9FA]/30 p-4 grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-xl border border-neutral-100/60 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">AI Display</p>
+                    <p className="mt-1.5 text-base font-bold text-[#780F32]">{formatLabel(selectedScan.display_prediction || selectedScan.ai_predicted_class)}</p>
                   </div>
-                  <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
-                    <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-400">Disease Model</p>
-                    <p className="mt-3 text-lg font-black text-gray-900">{formatLabel(selectedScan.disease_model)}</p>
+                  <div className="rounded-xl border border-neutral-100/60 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Disease Model</p>
+                    <p className="mt-1.5 text-base font-bold text-neutral-900">{formatLabel(selectedScan.disease_model)}</p>
                   </div>
-                  <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
-                    <p className="text-xs font-black uppercase tracking-[0.25em] text-gray-400">Confidence</p>
-                    <p className="mt-3 text-lg font-black text-gray-900">{formatPercent(selectedScan.ai_confidence)}</p>
+                  <div className="rounded-xl border border-neutral-100/60 bg-white p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Confidence</p>
+                    <p className="mt-1.5 text-base font-bold text-neutral-900">{formatPercent(selectedScan.ai_confidence)}</p>
                   </div>
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                {/* Secondary Column Layout */}
+                <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+                  
+                  {/* Left Column: Images, Metadata */}
                   <div className="space-y-6">
-                    <div className="rounded-[1.75rem] border border-gray-100 p-5">
-                      <h3 className="text-lg font-black text-gray-950">Scan Preview</h3>
-                      <img
-                        src={selectedScan.image}
-                        alt={selectedScan.title || "Selected scan"}
-                        className="mt-4 max-h-[360px] w-full rounded-[1.5rem] border border-gray-100 object-contain"
-                      />
-                    </div>
+                    
+                    {/* Scan Preview and Layer Tabs */}
+                    <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                      <div className="flex flex-col gap-3 mb-4 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 className="text-sm font-bold text-neutral-900">Scan Preview</h3>
 
-                    <div className="rounded-[1.75rem] border border-gray-100 p-5">
-                      <h3 className="text-lg font-black text-gray-950">Patient Context</h3>
-                      <div className="mt-4 space-y-3 text-sm text-gray-600">
-                        <p><span className="font-bold text-gray-900">Notes:</span> {patientContext.clinical_notes || selectedScan.description || "None provided"}</p>
-                        <p><span className="font-bold text-gray-900">Symptoms:</span> {patientContext.symptoms || "None provided"}</p>
-                        <p><span className="font-bold text-gray-900">History:</span> {patientContext.previous_breast_disease || "None provided"}</p>
+                        <div className="flex gap-1 bg-neutral-50 p-1 rounded-xl border border-neutral-100 self-start">
+                          <button
+                            type="button"
+                            onClick={() => setActiveLayer("original")}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 cursor-pointer ${
+                              activeLayer === "original" ? "bg-white text-[#780F32] shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                            }`}
+                          >
+                            Original
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveLayer("segmentation")}
+                            disabled={!selectedScan.segmentation_overlay_base64}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+                              activeLayer === "segmentation" ? "bg-white text-[#780F32] shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                            }`}
+                          >
+                            AI Segmentation
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveLayer("heatmap")}
+                            disabled={!selectedScan.xai_heatmap_base64}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+                              activeLayer === "heatmap" ? "bg-white text-[#780F32] shadow-sm" : "text-neutral-500 hover:text-neutral-800"
+                            }`}
+                          >
+                            AI Heatmap
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative w-full rounded-xl border border-neutral-100 overflow-hidden bg-neutral-950 flex items-center justify-center aspect-video">
+                        {previewImageSrc ? (
+                          <img
+                            src={previewImageSrc}
+                            alt={selectedScan.title || "Selected scan"}
+                            className="max-h-[360px] w-full object-contain"
+                          />
+                        ) : (
+                          <span className="text-xs text-neutral-400">Preview unavailable</span>
+                        )}
                       </div>
                     </div>
 
-                    <div className="rounded-[1.75rem] border border-gray-100 p-5">
-                      <h3 className="text-lg font-black text-gray-950">Model Traceability</h3>
-                      <div className="mt-4 space-y-3 text-xs leading-5 text-gray-600">
-                        <p><span className="font-black text-gray-900">Router:</span> {modelVersions.router?.name || "Not stored"}</p>
-                        <p className="break-all"><span className="font-black text-gray-900">Router checkpoint:</span> {modelVersions.router?.checkpoint || "Not stored"}</p>
-                        <p><span className="font-black text-gray-900">Classifier:</span> {modelVersions.classifier?.name || "Not stored"}</p>
-                        <p className="break-all"><span className="font-black text-gray-900">Classifier checkpoint:</span> {modelVersions.classifier?.checkpoint || "Not stored"}</p>
-                        <p><span className="font-black text-gray-900">Report provider:</span> {modelVersions.reporting?.provider_used || selectedScan.report?.provider || "Not stored"}</p>
+                    {/* Patient Context */}
+                    <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                      <h3 className="text-sm font-bold text-neutral-900">Patient Context</h3>
+                      <div className="mt-4 space-y-2.5 text-xs leading-relaxed text-neutral-500">
+                        <p><span className="font-semibold text-neutral-900">Notes:</span> {patientContext.clinical_notes || selectedScan.description || "None provided"}</p>
+                        <p><span className="font-semibold text-neutral-900">Symptoms:</span> {patientContext.symptoms || "None provided"}</p>
+                        <p><span className="font-semibold text-neutral-900">History:</span> {patientContext.previous_breast_disease || "None provided"}</p>
                       </div>
                     </div>
 
-                    <div className="rounded-[1.75rem] border border-gray-100 p-5">
-                      <h3 className="text-lg font-black text-gray-950">Citation Links</h3>
+                    {/* Model Traceability */}
+                    <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                      <h3 className="text-sm font-bold text-neutral-900">Model Traceability</h3>
+                      <div className="mt-4 space-y-2.5 text-[11px] leading-relaxed text-neutral-500">
+                        <p><span className="font-semibold text-neutral-900">Router:</span> {modelVersions.router?.name || "Not stored"}</p>
+                        <p className="break-all"><span className="font-semibold text-neutral-900">Router Checkpoint:</span> {modelVersions.router?.checkpoint || "Not stored"}</p>
+                        <p><span className="font-semibold text-neutral-900">Classifier:</span> {modelVersions.classifier?.name || "Not stored"}</p>
+                        <p className="break-all"><span className="font-semibold text-neutral-900">Classifier Checkpoint:</span> {modelVersions.classifier?.checkpoint || "Not stored"}</p>
+                        <p><span className="font-semibold text-neutral-900">Report Provider:</span> {modelVersions.reporting?.provider_used || selectedScan.report?.provider || "Not stored"}</p>
+                      </div>
+                    </div>
+
+                    {/* Citation links */}
+                    <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)]">
+                      <h3 className="text-sm font-bold text-neutral-900">Citation Links</h3>
                       <div className="mt-4 space-y-2">
                         {citations.length ? (
                           citations.map((citation) => (
-                            <a
+                             <a
                               key={citation.id || citation.source}
                               href={citation.url || "#"}
                               target={citation.url ? "_blank" : undefined}
                               rel="noreferrer"
-                              className="block rounded-2xl bg-[#fcfbfd] px-4 py-3 text-sm font-semibold text-[#7d1f3f] hover:bg-[#f8eff3]"
+                              className="block rounded-xl border border-[#780F32]/5 bg-[#FDF9FA] px-4 py-3 text-xs font-semibold text-[#780F32] transition-all duration-300 hover:bg-[#F8EEF2] hover:border-[#780F32]/25 hover:translate-x-1.5 hover:shadow-[0_4px_15px_rgba(120,15,50,0.05)] hover:text-[#5C0A25]"
                             >
                               {citation.id ? `${citation.id}: ` : ""}{citation.source}
                             </a>
                           ))
                         ) : (
-                          <p className="text-sm text-gray-500">No citation links were generated for this report.</p>
+                          <p className="text-xs text-neutral-400">No citation links were generated for this report.</p>
                         )}
                       </div>
                     </div>
+
                   </div>
 
-                  <div className="rounded-[1.75rem] border border-gray-100 p-5">
-                    <div className="flex items-center justify-between gap-3">
+                  {/* Right Column: Editor */}
+                  <div className="rounded-2xl border border-neutral-100 bg-white p-5 shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex flex-col">
+                    <div className="flex items-center justify-between gap-3 pb-3 border-b border-neutral-50">
                       <div>
-                        <h3 className="text-lg font-black text-gray-950">Radiologist Report Editor</h3>
-                        <p className="mt-1 text-sm text-gray-500">Edit the AI draft before finalizing.</p>
+                        <h3 className="text-sm font-bold text-neutral-900">Radiologist Report Editor</h3>
+                        <p className="mt-0.5 text-xs text-neutral-400">Edit the AI draft before finalizing.</p>
                       </div>
-                      <Activity className="text-[#7d1f3f]" size={22} />
+                      <Activity className="text-[#780F32]" size={20} />
                     </div>
 
                     <label className="mt-5 block">
-                      <span className="text-xs font-black uppercase tracking-[0.25em] text-gray-400">Patient Summary / Impression</span>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Patient Summary / Impression</span>
                       <textarea
                         value={draftImpression}
                         onChange={(event) => setDraftImpression(event.target.value)}
-                        className="mt-3 min-h-[120px] w-full rounded-[1.5rem] border border-gray-100 bg-[#fcfbfd] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#7d1f3f]/30"
+                        className="mt-3 min-h-[120px] w-full rounded-2xl border border-neutral-100 bg-neutral-50/50 px-4 py-3 text-xs leading-relaxed text-neutral-700 outline-none transition-all duration-300 focus:border-[#780F32]/40 focus:ring-2 focus:ring-[#780F32]/5"
                         placeholder="Write the final impression visible to the patient..."
                       />
                     </label>
 
                     <label className="mt-5 block">
-                      <span className="text-xs font-black uppercase tracking-[0.25em] text-gray-400">Full Radiologist Report</span>
+                      <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">Full Radiologist Report</span>
                       <textarea
                         value={draftContent}
                         onChange={(event) => setDraftContent(event.target.value)}
-                        className="mt-3 min-h-[300px] w-full rounded-[1.5rem] border border-gray-100 bg-[#fcfbfd] px-4 py-3 text-sm leading-6 outline-none transition focus:border-[#7d1f3f]/30"
+                        className="mt-3 min-h-[300px] w-full rounded-2xl border border-neutral-100 bg-neutral-50/50 px-4 py-3 text-xs leading-relaxed text-neutral-700 outline-none transition-all duration-300 focus:border-[#780F32]/40 focus:ring-2 focus:ring-[#780F32]/5"
                         placeholder="Edit full report content..."
                       />
                     </label>
 
-                    <div className="mt-5 rounded-[1.5rem] border border-amber-100 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-800">
+                    <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50/50 px-5 py-4 text-xs font-medium leading-relaxed text-amber-800">
                       {selectedScan.report?.structured_report?.disclaimer || selectedSafety?.disclaimer || "AI output is decision support only and must be reviewed before clinical use."}
                     </div>
 
-                    <div className="mt-6 flex flex-wrap gap-3">
+                    {/* Action buttons */}
+                    <div className="mt-6 flex flex-wrap gap-2.5">
                       <button
                         type="button"
                         onClick={handleAcceptCase}
                         disabled={saving || selectedStatus === "Accepted" || selectedStatus === "Finalized"}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-[#7d1f3f]/20 bg-[#f8eff3] px-5 py-3 text-sm font-black text-[#7d1f3f] transition hover:border-[#7d1f3f]/40 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-[#780F32]/25 bg-[#FDF9FA] px-4 py-3 text-xs font-semibold text-[#780F32] transition-all duration-200 hover:bg-[#F8EEF2] hover:border-[#780F32]/45 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
                       >
-                        {saving ? <Loader2 className="animate-spin" size={16} /> : <Stethoscope size={16} />} Accept Case
+                        {saving ? <Loader2 className="animate-spin" size={14} /> : <Stethoscope size={14} />} Accept Case
                       </button>
                       <button
                         type="button"
                         onClick={handleSaveDraft}
                         disabled={saving || selectedStatus === "Finalized"}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm font-black text-gray-700 transition hover:border-[#7d1f3f]/30 hover:text-[#7d1f3f] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-4 py-3 text-xs font-semibold text-neutral-700 transition-all duration-200 hover:border-[#780F32]/30 hover:text-[#780F32] disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] shadow-sm hover:shadow"
                       >
-                        {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} Save Draft
+                        {saving ? <Loader2 className="animate-spin" size={14} /> : <Save size={14} />} Save Draft
                       </button>
                       <button
                         type="button"
                         onClick={handleFinalize}
                         disabled={saving || selectedStatus === "Finalized" || !draftImpression.trim()}
-                        className="inline-flex items-center gap-2 rounded-2xl bg-[#7d1f3f] px-5 py-3 text-sm font-black text-white transition hover:bg-[#63172f] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-[#780F32] to-[#5C0A25] px-5 py-3 text-xs font-semibold text-white transition-all duration-200 hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] shadow-md shadow-[#780F32]/10"
                       >
-                        {saving ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Finalize And Send
+                        {saving ? <Loader2 className="animate-spin" size={14} /> : <Send size={14} />} Finalize & Send
                       </button>
                       <button
                         type="button"
                         onClick={handleExportPdf}
                         disabled={saving || selectedStatus !== "Finalized"}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-3 text-sm font-black text-emerald-700 transition hover:border-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-700 transition-all duration-200 hover:border-emerald-200/80 hover:bg-emerald-50/80 disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]"
                       >
-                        <FileDown size={16} /> Export PDF
+                        <FileDown size={14} /> Export PDF
                       </button>
                     </div>
 
                     {selectedScan.report?.is_final && (
-                      <div className="mt-5 rounded-[1.5rem] border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
+                      <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/50 px-5 py-4 text-xs font-semibold text-emerald-700">
                         Final summary sent to the patient workspace
                         {selectedScan.patient_summary_sent_at ? ` at ${new Date(selectedScan.patient_summary_sent_at).toLocaleString()}` : "."}
                       </div>
                     )}
                   </div>
+
                 </div>
+
               </div>
             ) : (
-              <div className="flex min-h-[520px] flex-col items-center justify-center rounded-[1.75rem] bg-[#fcfbfd] text-center">
-                <FileText className="text-[#7d1f3f]" size={42} />
-                <h2 className="mt-4 text-2xl font-black text-gray-950">No cases available</h2>
-                <p className="mt-2 text-sm text-gray-500">Patient scans will appear here after upload and AI analysis.</p>
+              <div className="flex min-h-[520px] flex-col items-center justify-center rounded-2xl bg-neutral-50/40 text-center p-6">
+                <FileText className="text-[#780F32]/80" size={36} />
+                <h2 className="mt-4 text-lg font-bold text-neutral-900">No cases available</h2>
+                <p className="mt-1 text-xs text-neutral-400">Patient scans will appear here after upload and AI analysis.</p>
               </div>
             )}
           </section>
+
         </div>
       </main>
     </div>

@@ -6,8 +6,21 @@ export const getPipelineHealth = async () => {
 };
 
 export const getPipelineSamples = async (limit = 5) => {
-  const response = await apiClient.get(`/radiology/pipeline/samples/?limit=${limit}`);
-  return response.data;
+  try {
+    const response = await apiClient.get(`/radiology/pipeline/samples/?limit=${limit}`);
+    return response.data;
+  } catch (error) {
+    return {
+      diseases: [
+        { disease: "mammography", samples: [] },
+        { disease: "breast_ultrasound", samples: [] },
+        { disease: "thyroid_ultrasound", samples: [] },
+        { disease: "endoscopy", samples: [] },
+        { disease: "chest_xray", samples: [] },
+        { disease: "dermatology", samples: [] }
+      ]
+    };
+  }
 };
 
 export const getPipelineModels = async () => {

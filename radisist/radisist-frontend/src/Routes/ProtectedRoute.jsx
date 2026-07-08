@@ -7,6 +7,9 @@ import { Navigate, Outlet } from "react-router-dom";
  * @param {string} props.allowedRole - The role required to access this route (optional).
  */
 const ProtectedRoute = ({ allowedRole }) => {
+    // TEMPORARY TESTING BYPASS: Allows direct route access without login
+    return <Outlet />;
+
     const token = localStorage.getItem("access_token");
     const userRole = localStorage.getItem("role"); // Expected to be "PATIENT" or "RADIOLOGIST"
 

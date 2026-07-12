@@ -3,3 +3,4 @@ __pycache__
 .env
 media
 error_log.txt
+db.sqlite3

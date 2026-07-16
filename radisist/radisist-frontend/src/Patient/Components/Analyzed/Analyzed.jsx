@@ -478,8 +478,8 @@ export default function Analyzed() {
           </div>
           <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">Predicted Class</p>
-            <p className={`mt-3 text-xl font-bold ${needsReview ? "text-amber-700" : "text-gray-900"}`}>
-              {formatLabel(scanData.display_prediction || scanData.ai_predicted_class)}
+            <p className={`mt-3 text-xl font-bold ${isDangerous ? "text-red-700" : "text-emerald-700"}`}>
+              {formatLabel(scanData.ai_predicted_class || scanData.display_prediction)}
             </p>
           </div>
           <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
@@ -495,118 +495,10 @@ export default function Analyzed() {
         </div>
       </div>
 
-      {reviewStatus === "finalized" ? (
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.7fr_1fr]">
-          <section className="space-y-6">
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex flex-wrap gap-3">
-                {tabs.map((tab) => (
-                  <TabButton key={tab.id} tab={tab} activeTab={activeTab} onClick={setActiveTab} />
-                ))}
-              </div>
-            </div>
-
-            {tabContent}
-          </section>
-
-          <aside className="space-y-6">
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#7d1f3f]/70">Original Scan</p>
-                  <h3 className="mt-2 text-xl font-bold text-gray-900">Review Image</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-semibold text-[#7d1f3f] transition hover:border-[#7d1f3f]"
-                >
-                  <Expand size={16} /> Expand Image
-                </button>
-              </div>
-
-              <img src={scanData.image ? scanData.image.replace(/^https?:\/\/[^\/]+/, "") : ""} alt={scanData.title || "Analyzed scan"} className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
-
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-[#fcfbfd] px-4 py-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Scan ID</p>
-                  <p className="mt-2 text-sm font-semibold text-gray-700">#{scanData.id}</p>
-                </div>
-                <div className="rounded-2xl bg-[#fcfbfd] px-4 py-3">
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Saved Crops</p>
-                  <p className="mt-2 text-sm font-semibold text-gray-700">{(scanData.crops || []).length}</p>
-                </div>
-              </div>
-
-              {(scanData.crops || []).length > 0 && (
-                <div className="mt-5 space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-[#7d1f3f]">
-                    <Save size={16} /> Saved Crops
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {scanData.crops.map((crop) => (
-                      <img key={crop.id} src={crop.image} alt={`Crop ${crop.id}`} className="h-28 w-full rounded-2xl border border-gray-100 object-cover" />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Radiologist Review Status Panel */}
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center gap-2 text-[#7d1f3f] mb-4">
-                <Stethoscope size={18} />
-                <p className="text-sm font-bold uppercase tracking-[0.2em]">Radiologist Review</p>
-              </div>
-              <div className="rounded-[1.5rem] bg-emerald-50 border border-emerald-100 p-4 text-sm text-emerald-800">
-                <div className="flex items-center gap-1.5 font-bold">
-                  <CheckCircle2 size={16} />
-                  <span>Report Finalized</span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-emerald-700">
-                  A professional radiologist has reviewed your case and finalized the report findings.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center gap-2 text-[#7d1f3f]">
-                <Layers3 size={18} />
-                <p className="text-sm font-bold uppercase tracking-[0.2em]">Segmentation</p>
-              </div>
-              {segmentationSrc ? (
-                <img src={segmentationSrc} alt="Segmentation overlay" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
-              ) : (
-                <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No segmentation overlay is available for this scan.</div>
-              )}
-            </div>
-
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center gap-2 text-[#7d1f3f]">
-                <Eye size={18} />
-                <p className="text-sm font-bold uppercase tracking-[0.2em]">Heatmap</p>
-              </div>
-              {heatmapSrc ? (
-                <img src={heatmapSrc} alt="Grad-CAM heatmap" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
-              ) : (
-                <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No heatmap was returned for this scan.</div>
-              )}
-
-              {activeFinding && (
-                <div className="mt-5 rounded-[1.5rem] bg-[#f8eff3] px-5 py-4">
-                  <div className="flex items-center gap-2 text-sm font-bold text-[#7d1f3f]">
-                    <ScanSearch size={16} /> Active Finding
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-gray-700">{activeFinding.finding || activeFinding.text}</p>
-                </div>
-              )}
-            </div>
-          </aside>
-        </div>
-      ) : (
-        <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-          <section className="space-y-6">
-            {isDangerous ? (
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.7fr_1fr]">
+        <section className="space-y-6">
+          {reviewStatus !== "finalized" && (
+            isDangerous ? (
               <div className="rounded-[2.2rem] border border-red-200 bg-red-50/50 p-8 shadow-sm">
                 <div className="flex items-start gap-4.5">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-white shadow-md">
@@ -640,75 +532,151 @@ export default function Analyzed() {
                   </div>
                 </div>
               </div>
+            )
+          )}
+
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="flex flex-wrap gap-3">
+              {tabs.map((tab) => (
+                <TabButton key={tab.id} tab={tab} activeTab={activeTab} onClick={setActiveTab} />
+              ))}
+            </div>
+          </div>
+
+          {tabContent}
+        </section>
+
+        <aside className="space-y-6">
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#7d1f3f]/70">Original Scan</p>
+                <h3 className="mt-2 text-xl font-bold text-gray-900">Review Image</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-2xl border border-gray-200 px-4 py-2 text-sm font-semibold text-[#7d1f3f] transition hover:border-[#7d1f3f]"
+              >
+                <Expand size={16} /> Expand Image
+              </button>
+            </div>
+
+            <img src={scanData.image ? scanData.image.replace(/^https?:\/\/[^\/]+/, "") : ""} alt={scanData.title || "Analyzed scan"} className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-[#fcfbfd] px-4 py-3">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Scan ID</p>
+                <p className="mt-2 text-sm font-semibold text-gray-700">#{scanData.id}</p>
+              </div>
+              <div className="rounded-2xl bg-[#fcfbfd] px-4 py-3">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Saved Crops</p>
+                <p className="mt-2 text-sm font-semibold text-gray-700">{(scanData.crops || []).length}</p>
+              </div>
+            </div>
+
+            {(scanData.crops || []).length > 0 && (
+              <div className="mt-5 space-y-3">
+                <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-[#7d1f3f]">
+                  <Save size={16} /> Saved Crops
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {scanData.crops.map((crop) => (
+                    <img key={crop.id} src={crop.image} alt={`Crop ${crop.id}`} className="h-28 w-full rounded-2xl border border-gray-100 object-cover" />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Radiologist Review Status Panel */}
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="flex items-center gap-2 text-[#7d1f3f] mb-4">
+              <Stethoscope size={18} />
+              <p className="text-sm font-bold uppercase tracking-[0.2em]">Radiologist Review</p>
+            </div>
+            {reviewStatus === "finalized" ? (
+              <div className="rounded-[1.5rem] bg-emerald-50 border border-emerald-100 p-4 text-sm text-emerald-800">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <CheckCircle2 size={16} />
+                  <span>Report Finalized</span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-emerald-700">
+                  A professional radiologist has reviewed your case and finalized the report findings.
+                </p>
+              </div>
+            ) : reviewStatus === "accepted_by_radiologist" ? (
+              <div className="rounded-[1.5rem] bg-blue-50 border border-blue-100 p-4 text-sm text-blue-900">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <Clock size={16} className="animate-spin" />
+                  <span>Case Under Review</span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-blue-700">
+                  Your scan has been accepted by a radiologist and is actively being reviewed. We will notify you once findings are finalized.
+                </p>
+              </div>
+            ) : reviewStatus === "needs_radiologist_review" ? (
+              <div className="rounded-[1.5rem] bg-amber-50 border border-amber-100 p-4 text-sm text-amber-900">
+                <div className="flex items-center gap-1.5 font-bold">
+                  <Clock size={16} />
+                  <span>Awaiting Radiologist</span>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-amber-700">
+                  This case has been successfully submitted to the radiologist queue. A certified radiologist will review the AI overlays and prepare the report.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Submit this scan to the professional review panel. A certified radiologist will audit the AI overlays, segmentation bounds, and write a detailed clinical impression.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRequestReview}
+                  disabled={requestingReview}
+                  className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#7d1f3f] hover:bg-[#63172f] text-white px-5 py-4 text-xs font-black uppercase tracking-widest shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {requestingReview ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Request Professional Audit
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="flex items-center gap-2 text-[#7d1f3f]">
+              <Layers3 size={18} />
+              <p className="text-sm font-bold uppercase tracking-[0.2em]">Segmentation</p>
+            </div>
+            {segmentationSrc ? (
+              <img src={segmentationSrc} alt="Segmentation overlay" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
+            ) : (
+              <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No segmentation overlay is available for this scan.</div>
+            )}
+          </div>
+
+          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <div className="flex items-center gap-2 text-[#7d1f3f]">
+              <Eye size={18} />
+              <p className="text-sm font-bold uppercase tracking-[0.2em]">Heatmap</p>
+            </div>
+            {heatmapSrc ? (
+              <img src={heatmapSrc} alt="Grad-CAM heatmap" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
+            ) : (
+              <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No heatmap was returned for this scan.</div>
             )}
 
-            {/* Original Upload Image Display */}
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <h3 className="text-lg font-black text-gray-900 mb-4">Uploaded Imaging</h3>
-              <img 
-                src={scanData.image ? scanData.image.replace(/^https?:\/\/[^\/]+/, "") : ""} 
-                alt="Uploaded scan preview" 
-                className="w-full max-h-[480px] rounded-2xl border border-gray-100 object-contain bg-neutral-900" 
-              />
-            </div>
-          </section>
-
-          <aside className="space-y-6">
-            {/* Action card for Review request */}
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col justify-between h-fit">
-              <div className="flex items-center justify-between border-b border-gray-50 pb-4 mb-6">
-                <div className="flex items-center gap-2.5 text-[#7d1f3f]">
-                  <Stethoscope size={22} />
-                  <span className="text-sm font-black uppercase tracking-wider">Radiology Audit</span>
+            {activeFinding && (
+              <div className="mt-5 rounded-[1.5rem] bg-[#f8eff3] px-5 py-4">
+                <div className="flex items-center gap-2 text-sm font-bold text-[#7d1f3f]">
+                  <ScanSearch size={16} /> Active Finding
                 </div>
-                <span className="text-[10px] uppercase font-bold text-gray-400 bg-gray-50 px-2.5 py-1 rounded-lg">Review Step</span>
+                <p className="mt-2 text-sm leading-6 text-gray-700">{activeFinding.finding || activeFinding.text}</p>
               </div>
-
-              {reviewStatus === "accepted_by_radiologist" ? (
-                <div className="space-y-4">
-                  <div className="rounded-[1.5rem] bg-blue-50 border border-blue-100 p-5 text-blue-900">
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <Clock size={18} className="animate-spin" />
-                      <span>Case Under Review</span>
-                    </div>
-                    <p className="mt-3 text-xs leading-relaxed text-blue-700">
-                      Your scan has been accepted by a radiologist and is actively being reviewed. We will notify you once findings are finalized.
-                    </p>
-                  </div>
-                </div>
-              ) : reviewStatus === "needs_radiologist_review" ? (
-                <div className="space-y-4">
-                  <div className="rounded-[1.5rem] bg-amber-50 border border-amber-100 p-5 text-amber-900">
-                    <div className="flex items-center gap-1.5 font-bold">
-                      <Clock size={18} />
-                      <span>Awaiting Radiologist</span>
-                    </div>
-                    <p className="mt-3 text-xs leading-relaxed text-amber-700">
-                      This case has been successfully submitted to the radiologist queue. A certified radiologist will review the AI overlays and prepare the report.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    Submit this scan to the professional review panel. A certified radiologist will audit the AI overlays, segmentation bounds, and write a detailed clinical impression.
-                  </p>
-                  
-                  <button
-                    type="button"
-                    onClick={handleRequestReview}
-                    disabled={requestingReview}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#7d1f3f] hover:bg-[#63172f] text-white px-5 py-4 text-xs font-black uppercase tracking-widest shadow-md transition active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {requestingReview ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                    Request Professional Audit
-                  </button>
-                </div>
-              )}
-            </div>
-          </aside>
-        </div>
-      )}
+            )}
+          </div>
+        </aside>
+      </div>
 
       <ImageExpandModal
         isOpen={modalOpen}

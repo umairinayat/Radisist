@@ -39,7 +39,7 @@ function Footer() {
 
                     {/* Brand Section */}
                     <div className="lg:col-span-1">
-                        <Logo darkBackground={true} />
+                        <Logo white={true} />
                         <p className="mt-4 text-gray-400 text-sm">
                             AI-powered radiology diagnostics that deliver fast, accurate, and reliable results.
                             Bridging technology with medical expertise.

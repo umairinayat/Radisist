@@ -20,6 +20,33 @@ function Login() {
     setLoading(true);
     setError("");
     setSuccess(false);
+
+    // DEMO BYPASS: Add mock credentials check for testing
+    if (email === "demo@radisist.com" && password === "demo123") {
+      localStorage.setItem("access_token", "mock_demo_access_token");
+      localStorage.setItem("role", "PATIENT");
+      localStorage.setItem("full_name", "Demo Patient");
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        navigate("/userdashboard/scans");
+      }, 1500);
+      setLoading(false);
+      return;
+    }
+    if (email === "radiologist@radisist.com" && password === "demo123") {
+      localStorage.setItem("access_token", "mock_demo_access_token");
+      localStorage.setItem("role", "RADIOLOGIST");
+      localStorage.setItem("full_name", "Dr. Demo Radiologist");
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        navigate("/radiologist");
+      }, 1500);
+      setLoading(false);
+      return;
+    }
+
     try {
       await loginUser({ email, password });
 

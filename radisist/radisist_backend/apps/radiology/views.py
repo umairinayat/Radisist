@@ -8,7 +8,16 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.views import APIView
+
+
+class PipelineAnalyzeThrottle(UserRateThrottle):
+    scope = "pipeline_analyze"
+
+
+class PipelineRouteThrottle(UserRateThrottle):
+    scope = "pipeline_route"
 
 from .models import Notification, Scan, Report, ScanCrop
 from .pipeline_service import get_pipeline_models, get_sample_gallery, route_medical_image
@@ -396,7 +405,30 @@ class PipelineHealthView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        return Response({"status": "ok", "service": "Radisist Django Pipeline"})
+        from django.db import connection
+        from pathlib import Path
+        from app.config import MODELS_DIR
+        checks = {"database": "ok", "models": "ok", "disk": "ok"}
+        try:
+            with connection.cursor() as cur:
+                cur.execute("SELECT 1")
+        except Exception as e:
+            checks["database"] = f"error: {e}"
+        try:
+            router_ok = (MODELS_DIR / "biomedclip_router" / "best_biomedclip_router.pt").exists()
+            checks["models"] = "ok" if router_ok else "router missing"
+        except Exception as e:
+            checks["models"] = f"error: {e}"
+        try:
+            import shutil
+            free = shutil.disk_usage("/").free // (1024**3)
+            checks["disk"] = f"{free}GB free"
+            if free < 2:
+                checks["disk"] = f"low: {free}GB free"
+        except Exception:
+            pass
+        status = "ok" if all(v == "ok" or "GB free" in v for v in checks.values()) else "degraded"
+        return Response({"status": status, "service": "Radisist Django Pipeline", "checks": checks})
 
 
 class PipelineModelsView(APIView):
@@ -442,6 +474,7 @@ class PipelineSampleImageView(APIView):
 class PipelineRouteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
+    throttle_classes = [PipelineRouteThrottle]
 
     def post(self, request):
         uploaded_file = request.FILES.get("file")
@@ -455,6 +488,7 @@ class PipelineRouteView(APIView):
 class PipelineAnalyzeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
+    throttle_classes = [PipelineAnalyzeThrottle]
 
     def post(self, request):
         uploaded_file = request.FILES.get("file")

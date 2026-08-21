@@ -506,43 +506,6 @@ export default function Analyzed() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.7fr_1fr]">
         <section className="space-y-6">
-          {reviewStatus !== "finalized" && (
-            isDangerous ? (
-              <div className="rounded-[2.2rem] border border-red-200 bg-red-50/50 p-8 shadow-sm">
-                <div className="flex items-start gap-4.5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-white shadow-md">
-                    <ShieldAlert size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black text-red-950 uppercase tracking-tight">⚠️ AI Classification: Suspicious Abnormality Detected</h3>
-                    <p className="mt-3.5 text-sm leading-relaxed text-red-800 font-medium">
-                      The AI diagnostic assistant has flagged high-risk structural features on this scan, which may represent high-risk or malignant tissue (Dangerous). 
-                    </p>
-                    <p className="mt-3 text-xs text-red-700 font-semibold italic">
-                      Disclaimer: AI analysis is for decision support only. To confirm these findings and view the final report, request a manual professional audit from our clinical team.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-[2.2rem] border border-emerald-200 bg-emerald-50/40 p-8 shadow-sm">
-                <div className="flex items-start gap-4.5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md">
-                    <CheckCircle2 size={24} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black text-emerald-950 uppercase tracking-tight">✅ AI Classification: Low Risk (Benign / Normal)</h3>
-                    <p className="mt-3.5 text-sm leading-relaxed text-emerald-800 font-medium">
-                      The AI model has analyzed the scan and found no urgent indications of malignant tissue (Low Risk).
-                    </p>
-                    <p className="mt-3 text-xs text-emerald-700 font-semibold italic">
-                      Note: CT scans and mammograms can contain subtle details. We strongly recommend having a professional radiologist review the raw imaging manually.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
 
           <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <div className="flex flex-wrap gap-3">

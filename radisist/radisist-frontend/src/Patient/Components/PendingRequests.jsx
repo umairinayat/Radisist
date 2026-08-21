@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { ShieldAlert } from "lucide-react";
+import { Clock } from "lucide-react";
 
 import "../../../src/index.css";
 
@@ -9,8 +9,8 @@ function PendingRequests({ stats }) {
     <div id="CARD" className="p-8 bg-white flex flex-col gap-6 justify-between shadow-[0_2px_40px_rgba(0,0,0,0.02)] border border-gray-50 rounded-4xl h-full transition-all duration-300 hover:shadow-md">
       <div className="flex items-center justify-between">
         <h1 className="bg-[#F1EEEE] px-4 py-1.5 rounded-xl font-bold text-[10px] text-gray-500">Pending Reviews</h1>
-        <div className="bg-red-50 w-10 h-10 rounded-2xl flex items-center justify-center text-[#7d1f3f]">
-          <ShieldAlert size={20} strokeWidth={2.4} />
+        <div className="bg-[#7d1f3f]/10 w-10 h-10 rounded-2xl flex items-center justify-center text-[#7d1f3f]">
+          <Clock size={20} strokeWidth={2.2} />
         </div>
       </div>
       <div className="flex items-center justify-between gap-4">

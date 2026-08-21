@@ -50,13 +50,6 @@ class ReportSerializer(serializers.ModelSerializer):
             representation.pop('content', None)
             representation.pop('provider', None)
             representation.pop('report_error', None)
-            structured = representation.get('structured_report')
-            if isinstance(structured, dict):
-                representation['structured_report'] = {
-                    k: structured[k]
-                    for k in ('summary', 'disclaimer')
-                    if k in structured
-                } or None
         return representation
 
     def create(self, validated_data):

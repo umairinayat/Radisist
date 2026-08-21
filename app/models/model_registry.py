@@ -36,19 +36,6 @@ def download_router_model() -> Path:
 
 
 def download_disease_model(disease: str, model_type: str = "classification") -> Path:
-    if model_type == "tanet":
-        filename = "best_tanet.pt"
-        local_path = MODELS_DIR / "disease_models" / disease / "segmentation" / filename
-        remote_path = f"{DISEASE_REMOTE_DIR}/{disease}/segmentation/{filename}"
-        try:
-            return _download_file(remote_path, local_path)
-        except Exception:
-            legacy = MODELS_DIR / "disease_models" / disease / "segmentation" / "best_segmenter.pt"
-            if legacy.exists():
-                import shutil
-                shutil.copy(legacy, local_path)
-                return local_path
-            raise
     filename = "best_classifier.pt" if model_type == "classification" else "best_segmenter.pt"
     local_path = MODELS_DIR / "disease_models" / disease / model_type / filename
     remote_path = f"{DISEASE_REMOTE_DIR}/{disease}/{model_type}/{filename}"

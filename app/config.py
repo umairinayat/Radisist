@@ -26,10 +26,6 @@ try:
 except ImportError:
     DEVICE = "cpu"
 
-USE_TANET = os.getenv("USE_TANET", "true").lower() in ("1", "true", "yes")
-TANET_ENCODER = os.getenv("TANET_ENCODER", "resnet34")
-SEGMENTOR_ARCH = "tanet" if USE_TANET else "smp_unetplusplus"
-
 ROUTER_CLASSES = [
     "Endoscopy",
     "Dermatology",

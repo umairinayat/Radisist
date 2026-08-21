@@ -85,11 +85,11 @@ flowchart TD
 | Thyroid ultrasound classifier | `DiseaseClassifier` | `models/disease_models/thyroid_ultrasound/classification/best_classifier.pt` | low_risk / suspicious |
 | Fundus classifier | `DiseaseClassifier` | `models/disease_models/fundus_retinography/classification/best_classifier.pt` | retinal disease routing |
 | Microscopy classifier | `DiseaseClassifier` | `models/disease_models/microscopy/classification/best_classifier.pt` | metastasis / no_metastasis |
-| Segmentor family | `app.models.segmentor.DiseaseSegmentor` + `app.models.tanet.TANet` | `TANet (Triple Attention Network) + segmentation_models_pytorch.UnetPlusPlus` | USE_TANET=true uses TANet (Channel+Spatial+Scale Attention on resnet34); fallback UNet++ |
-| Endoscopy segmentor | `DiseaseSegmentor` | `models/disease_models/endoscopy/segmentation/best_tanet.pt` (fallback `best_segmenter.pt`) | TANet segmentation branch |
-| Breast ultrasound segmentor | `DiseaseSegmentor` | `models/disease_models/breast_ultrasound/segmentation/best_tanet.pt` | TANet segmentation branch |
-| Mammography segmentor | `DiseaseSegmentor` | `models/disease_models/mammography/segmentation/best_tanet.pt` | TANet segmentation branch |
-| Thyroid ultrasound segmentor | `DiseaseSegmentor` | `models/disease_models/thyroid_ultrasound/segmentation/best_tanet.pt` | TANet segmentation branch |
+| Segmentor family | `app.models.segmentor.DiseaseSegmentor` | `segmentation_models_pytorch.UnetPlusPlus` | Used when segmentation exists |
+| Endoscopy segmentor | `DiseaseSegmentor` | `models/disease_models/endoscopy/segmentation/best_segmenter.pt` | optional segmentation branch |
+| Breast ultrasound segmentor | `DiseaseSegmentor` | `models/disease_models/breast_ultrasound/segmentation/best_segmenter.pt` | optional segmentation branch |
+| Mammography segmentor | `DiseaseSegmentor` | `models/disease_models/mammography/segmentation/best_segmenter.pt` | optional segmentation branch |
+| Thyroid ultrasound segmentor | `DiseaseSegmentor` | `models/disease_models/thyroid_ultrasound/segmentation/best_segmenter.pt` | optional segmentation branch |
 | Explainability | `app.pipeline.xai.generate_gradcam` | Grad-CAM++ | Heatmap output |
 | Report engine | `app.pipeline.report.generate_report` | RAG + LLM | Uses guideline JSON + provider fallback |
 | LLM provider 1 | `app.llm.provider` | Gemini 2.5 Flash | first fallback target |

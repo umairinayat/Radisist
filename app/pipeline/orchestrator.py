@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 from PIL import Image
 
-from app.config import DEVICE, DISEASE_MODELS, HF_REPO_ID, MODALITY_TO_DISEASE, MODELS_DIR, USE_TANET, SEGMENTOR_ARCH, TANET_ENCODER
+from app.config import DEVICE, DISEASE_MODELS, HF_REPO_ID, MODALITY_TO_DISEASE, MODELS_DIR
 from app.models.router import router_instance
 from app.models.classifier import classifier_instance
 from app.models.segmentor import segmentor_instance, SEGMENTATION_MODELS
@@ -74,21 +74,18 @@ def build_model_versions(disease: str | None, has_segmentation: bool) -> dict:
         }
 
     if disease and has_segmentation:
-        seg_arch = SEGMENTOR_ARCH if USE_TANET else "UNet++"
-        ckpt_name = "best_tanet.pt" if USE_TANET else "best_segmenter.pt"
+        seg_arch = "UNet++"
         try:
             if disease in segmentor_instance.loaded_models:
-                seg_arch = segmentor_instance.loaded_models[disease].get("arch", seg_arch)
+                seg_arch = segmentor_instance.loaded_models[disease].get("arch", "UNet++")
         except Exception:
             pass
         versions["segmentor"] = {
             "name": f"{seg_arch}-{disease}",
             "architecture": seg_arch,
-            "encoder": TANET_ENCODER if USE_TANET else None,
             "disease_model": disease,
-            "tanet_enabled": USE_TANET,
             **model_checkpoint_metadata(
-                MODELS_DIR / "disease_models" / disease / "segmentation" / ckpt_name
+                MODELS_DIR / "disease_models" / disease / "segmentation" / "best_segmenter.pt"
             ),
         }
 
@@ -138,7 +135,7 @@ async def analyze_image(
     elif len(possible_diseases) == 1:
         disease = possible_diseases[0]
     elif len(possible_diseases) > 1:
-        disease = possible_diseases[0]  # default to first; frontend can override
+        disease = possible_diseases[0]
     else:
         disease = None
 
@@ -188,20 +185,17 @@ async def analyze_image(
                 t3 = time.time()
                 segmentation_result = segmentor_instance.predict(image, disease, original_size)
                 mask = segmentation_result.pop("mask")
-                # Create overlay image
                 overlay = mask_to_overlay(image, mask)
                 seg_overlay_b64 = image_to_base64(overlay)
-                seg_tool = f"TANet-{disease}" if USE_TANET else f"UNet++-{disease}"
                 audit_trail.append({
                     "step": "segment",
-                    "tool": seg_tool,
+                    "tool": f"UNet++-{disease}",
                     "latency_ms": int((time.time() - t3) * 1000),
                     "output": f"{segmentation_result['num_regions']} regions",
                 })
             except Exception as e:
                 logger.error(f"Segmentation failed: {e}")
-                seg_tool = f"TANet-{disease}" if USE_TANET else f"UNet++-{disease}"
-                audit_trail.append({"step": "segment", "tool": seg_tool, "error": str(e)})
+                audit_trail.append({"step": "segment", "tool": f"UNet++-{disease}", "error": str(e)})
 
         # Step 6: XAI (Grad-CAM++)
         try:
@@ -210,7 +204,6 @@ async def analyze_image(
             cls_arch = classifier_instance.loaded_models.get(disease, {}).get("arch", "")
             target_class = None
             if classification_result:
-                # Find index of top prediction
                 classes = DISEASE_MODELS.get(disease, {}).get("classes", [])
                 top = classification_result["top_prediction"]
                 if top in classes:

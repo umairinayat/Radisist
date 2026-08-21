@@ -160,14 +160,24 @@ function Login() {
             {/* PASSWORD */}
             <div className="group">
               <label className="text-[#7F2040] text-sm font-semibold ml-4 mb-2 block group-focus-within:text-[#7B1E38] group-focus-within:translate-x-1 group-focus-within:scale-105 transition-all duration-300 origin-left">Password</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                className="w-full border border-gray-100 bg-gray-50/50 rounded-full px-6 py-4 focus:outline-none focus:ring-2 focus:ring-[#7F2040]/10 transition-all font-medium"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="w-full border border-gray-100 bg-gray-50/50 rounded-full px-6 py-4 pr-14 focus:outline-none focus:ring-2 focus:ring-[#7F2040]/10 transition-all font-medium"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:text-[#7B1E38] hover:bg-[#7B1E38]/10 transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             {/* REMEMBER + FORGOT */}

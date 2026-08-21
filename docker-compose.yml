@@ -9,6 +9,8 @@ services:
       DEBUG: "true"
       USE_TANET: "true"
       TANET_ENCODER: "resnet34"
+      AI_SERVICE_URL: https://parentlike-hydroponically-rodney.ngrok-free.dev
+      AI_SERVICE_TIMEOUT: "120"
     command: sh -c "python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:7400"
     ports:
       - "7400:7400"

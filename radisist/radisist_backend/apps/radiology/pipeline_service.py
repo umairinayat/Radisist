@@ -57,9 +57,11 @@ def ensure_pipeline_ready():
 
 def _map_remote_routing(data, file_bytes):
     routing = data.get("routing") or {}
+    if not routing and "modality" in data:
+        routing = data
     raw_modality = routing.get("modality") or routing.get("modality_name") or "Unknown"
     confidence = routing.get("confidence", 0.9)
-    disease = routing.get("disease") or routing.get("disease_model")
+    disease = routing.get("disease") or routing.get("disease_model") or (routing.get("disease_options", [None])[0] if isinstance(routing.get("disease_options"), list) else None)
     norm = raw_modality.strip().lower()
     if norm in ("unknown", "unsupported", "ambiguous"):
         return {
@@ -125,7 +127,8 @@ def route_medical_image(file_bytes: bytes) -> dict:
         try:
             url = f"{settings.AI_SERVICE_URL.rstrip('/')}/route"
             timeout = int(getattr(settings, "AI_SERVICE_TIMEOUT", 30))
-            with httpx.Client(timeout=timeout) as client:
+            headers = {"ngrok-skip-browser-warning": "true"}
+            with httpx.Client(timeout=timeout, headers=headers) as client:
                 resp = client.post(url, files={"file": ("image.png", file_bytes, "image/png")})
                 resp.raise_for_status()
                 data = resp.json()
@@ -181,7 +184,8 @@ def analyze_medical_image(
             data = {}
             if force_disease:
                 data["force_disease"] = force_disease
-            with httpx.Client(timeout=timeout) as client:
+            headers = {"ngrok-skip-browser-warning": "true"}
+            with httpx.Client(timeout=timeout, headers=headers) as client:
                 resp = client.post(url, files=files, data=data)
                 resp.raise_for_status()
                 remote = resp.json()
@@ -190,8 +194,8 @@ def analyze_medical_image(
             disease = force_disease or routing.get("disease") or classification.get("disease") or (routing.get("disease_models", [None])[0])
             seg_data = remote.get("segmentation") or {}
             xai_data = remote.get("xai") or {}
-            seg_overlay = seg_data.get("overlay_base64") or seg_data.get("segmentation_overlay") or remote.get("segmentation_overlay")
-            heatmap = xai_data.get("heatmap_base64") or xai_data.get("xai_heatmap") or remote.get("xai_heatmap")
+            seg_overlay = seg_data.get("overlay_base64") or seg_data.get("segmentation_overlay_base64") or seg_data.get("segmentation_overlay") or remote.get("segmentation_overlay_base64") or remote.get("segmentation_overlay") or remote.get("overlay_base64")
+            heatmap = xai_data.get("heatmap_base64") or xai_data.get("xai_heatmap_base64") or xai_data.get("xai_heatmap") or remote.get("xai_heatmap_base64") or remote.get("xai_heatmap") or remote.get("heatmap_base64")
             audit = remote.get("audit_trail")
             if isinstance(audit, dict):
                 audit = [audit]

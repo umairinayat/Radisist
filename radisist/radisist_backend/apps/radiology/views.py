@@ -225,14 +225,15 @@ class ScanViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at']
 
     def get_queryset(self):
+        qs = Scan.objects.all().order_by('-created_at', '-id')
         user = self.request.user
         if user.role == User.PATIENT:
-            return Scan.objects.filter(patient__user=user)
+            return qs.filter(patient__user=user)
         elif user.role == User.RADIOLOGIST:
-            return Scan.objects.all() # Radiologists see all scans
+            return qs
         elif user.role == User.ADMIN or user.is_staff:
-            return Scan.objects.all()
-        return Scan.objects.none()
+            return qs
+        return qs.none()
 
     def perform_create(self, serializer):
         user = self.request.user

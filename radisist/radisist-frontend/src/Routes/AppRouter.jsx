@@ -77,15 +77,9 @@ const router = createBrowserRouter([
     path: "/radiologist",
     element: <ProtectedRoute allowedRole="RADIOLOGIST" />,
     children: [
-      {
-        path: "",
-        element: <DashboardLayout />,
-        children: [
-          { index: true, element: <RadDashboard /> },
-          { path: "upload", element: <Upload /> },
-          { path: "analyzed", element: <Analyzed /> },
-        ]
-      }
+      { index: true, element: <DashboardLayout /> },
+      { path: "upload", element: <Upload /> },
+      { path: "analyzed", element: <Analyzed /> },
     ]
   },
 

@@ -14,6 +14,7 @@ import {
   Send,
   ShieldAlert,
   Stethoscope,
+  UploadCloud,
   User,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -409,6 +410,13 @@ export default function DashboardLayout() {
             <p className="mt-1 text-sm text-neutral-500">Claim AI-assisted cases, edit draft reports, and send final summaries to patients.</p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/radiologist/upload")}
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#780F32] px-4 py-3 text-xs font-bold text-white transition hover:bg-[#63172f] shadow-sm"
+            >
+              <UploadCloud size={16} /> Upload Scan
+            </button>
             <div className="relative">
               <button
                 type="button"

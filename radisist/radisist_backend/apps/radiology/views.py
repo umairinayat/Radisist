@@ -495,14 +495,35 @@ class PipelineAnalyzeView(APIView):
         if not uploaded_file:
             return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        if request.user.role != User.PATIENT or not hasattr(request.user, "patient"):
+        if request.user.role == User.PATIENT and hasattr(request.user, "patient"):
+            patient = request.user.patient
+        elif request.user.role in (User.RADIOLOGIST, User.ADMIN) or request.user.is_staff:
+            from apps.users.models import Patient
+            patient_id = request.data.get("patient_id")
+            patient_email = request.data.get("patient_email")
+            patient = None
+            if patient_id:
+                try:
+                    patient = Patient.objects.get(id=patient_id)
+                except Patient.DoesNotExist:
+                    pass
+            if not patient and patient_email:
+                try:
+                    patient = Patient.objects.get(user__email=patient_email)
+                except Patient.DoesNotExist:
+                    pass
+            if not patient and hasattr(request.user, "patient"):
+                patient = request.user.patient
+            if not patient:
+                patient, _ = Patient.objects.get_or_create(user=request.user, defaults={"symptoms": "OTHERS", "lifestyle": "OTHERS"})
+        else:
             return Response(
-                {"error": "Only patients can create scan analyses from the pipeline UI."},
+                {"error": "Only patients, radiologists or admins can create scan analyses."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         scan = Scan(
-            patient=request.user.patient,
+            patient=patient,
             image=uploaded_file,
             scan_type=request.data.get("scan_type") or "OTHER",
             title=request.data.get("title") or uploaded_file.name,

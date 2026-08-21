@@ -82,6 +82,8 @@ const router = createBrowserRouter([
         element: <DashboardLayout />,
         children: [
           { index: true, element: <RadDashboard /> },
+          { path: "upload", element: <Upload /> },
+          { path: "analyzed", element: <Analyzed /> },
         ]
       }
     ]

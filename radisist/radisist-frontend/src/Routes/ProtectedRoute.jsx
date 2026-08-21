@@ -17,9 +17,12 @@ const ProtectedRoute = ({ allowedRole }) => {
 
     // 2. Check if a specific role is required
     if (allowedRole && userRole !== allowedRole) {
-        // Redirect to home or an unauthorized page if role doesn't match
-        console.warn(`Access denied: Required role ${allowedRole}, but user has ${userRole}`);
-        return <Navigate to="/" replace />;
+        if (userRole === "ADMIN" && allowedRole === "RADIOLOGIST") {
+            // Admin shares radiologist portal
+        } else {
+            console.warn(`Access denied: Required role ${allowedRole}, but user has ${userRole}`);
+            return <Navigate to="/" replace />;
+        }
     }
 
     // 3. If everything is fine, render the child routes

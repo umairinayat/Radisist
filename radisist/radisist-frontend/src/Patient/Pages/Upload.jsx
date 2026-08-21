@@ -211,7 +211,12 @@ export default function Upload() {
         setCropSaving(false);
       }
 
-      navigate("/userdashboard/analyzed", { state: { scanData: nextScanData } });
+      const role = localStorage.getItem("role");
+      if (role === "RADIOLOGIST" || role === "ADMIN") {
+        navigate("/radiologist/analyzed", { state: { scanData: nextScanData } });
+      } else {
+        navigate("/userdashboard/analyzed", { state: { scanData: nextScanData } });
+      }
     } catch (analyzeError) {
       setCropSaving(false);
       setError(analyzeError.response?.data?.error || "Analysis failed. Please try again.");
@@ -327,7 +332,9 @@ export default function Upload() {
 
                 {previewUrl ? (
                   <div className="w-full">
-                    <img src={previewUrl} alt="Selected scan" className="mx-auto h-52 w-full max-w-xl rounded-[1.5rem] object-cover shadow-sm" />
+                    <div className="mx-auto flex max-h-[340px] w-full max-w-xl items-center justify-center rounded-[1.5rem] bg-white p-2 shadow-sm">
+                      <img src={previewUrl} alt="Selected scan" className="max-h-[320px] w-auto max-w-full rounded-[1.25rem] object-contain" />
+                    </div>
                     <p className="mt-4 text-base font-semibold text-[#7d1f3f]">{selectedFile?.name}</p>
                     <p className="mt-1 text-sm text-gray-500">Ready for routing, expansion, or full analysis.</p>
                   </div>
@@ -379,13 +386,19 @@ export default function Upload() {
 
                 <button
                   type="button"
-                  disabled={!selectedFile || analyzeLoading || routeLoading}
+                  disabled={!selectedFile || !routingResult || routingResult.modality === "Unknown" || analyzeLoading || routeLoading}
                   onClick={handleAnalyze}
-                  className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-[#7d1f3f] px-4 py-4 text-sm font-bold text-white transition hover:bg-[#63172f] disabled:cursor-not-allowed disabled:opacity-60"
+                  title={routingResult?.modality === "Unknown" ? "Unsupported scan type — cannot analyze" : !routingResult && selectedFile ? "Detect scan modality first" : undefined}
+                  className="inline-flex w-full items-center justify-center gap-3 rounded-2xl bg-[#7d1f3f] px-4 py-4 text-sm font-bold text-white transition hover:bg-[#63172f] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {analyzeLoading || cropSaving ? <Loader2 className="animate-spin" size={18} /> : <BrainCircuit size={18} />}
                   Start AI Diagnostics
                 </button>
+                {routingResult?.modality === "Unknown" ? (
+                  <p className="text-xs text-red-600 text-center font-bold">Unsupported/unknown modality — please upload a valid medical scan (Mammography, Ultrasound, Endoscopy, Chest X-Ray, Dermatology).</p>
+                ) : !routingResult && selectedFile ? (
+                  <p className="text-xs text-amber-600 text-center font-medium">Click “Detect Scan Modality” first to enable diagnostics.</p>
+                ) : null}
               </div>
 
               <div className="mt-6 rounded-[1.75rem] bg-[#fcfbfd] p-5">
@@ -451,7 +464,7 @@ export default function Upload() {
                       </div>
                     )}
 
-                    {recommendedDisease && (
+                    {recommendedDisease && routingResult?.modality !== "Unknown" && (
                       <div className="inline-flex items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
                         <WandSparkles size={16} /> Analysis will use {formatLabel(recommendedDisease)}
                       </div>

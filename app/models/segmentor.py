@@ -130,7 +130,8 @@ class DiseaseSegmentor:
 
         tanet_path = MODELS_DIR / "disease_models" / disease / "segmentation" / "best_tanet.pt"
         legacy_path = MODELS_DIR / "disease_models" / disease / "segmentation" / "best_segmenter.pt"
-        if USE_TANET and tanet_path.exists():
+        use_tanet_for_disease = USE_TANET and disease != "endoscopy"
+        if use_tanet_for_disease and tanet_path.exists():
             checkpoint_path = tanet_path
         else:
             checkpoint_path = legacy_path
@@ -141,10 +142,10 @@ class DiseaseSegmentor:
         model_state = checkpoint.get("model_state_dict", checkpoint.get("model_state", checkpoint))
 
         arch, encoder = _detect_seg_arch(checkpoint, model_state)
-        if USE_TANET and arch != "tanet" and tanet_path.exists():
+        if use_tanet_for_disease and arch != "tanet" and tanet_path.exists():
             arch = "tanet"
             encoder = TANET_ENCODER
-        elif USE_TANET and arch == "smp_unetplusplus":
+        elif use_tanet_for_disease and arch == "smp_unetplusplus":
             arch = "tanet"
             encoder = TANET_ENCODER
         img_size = checkpoint.get("img_size", 256)
@@ -152,8 +153,22 @@ class DiseaseSegmentor:
         std = checkpoint.get("normalization_std")
         if mean is None:
             mean, std = LEGACY_NORMALIZATION.get(disease, (IMAGENET_MEAN, IMAGENET_STD))
+        threshold = checkpoint.get("best_threshold") or checkpoint.get("threshold")
+        if threshold is None:
+            try:
+                import json
+                metrics_path = MODELS_DIR / "disease_models" / disease / "segmentation" / "metrics.json"
+                if metrics_path.exists():
+                    with open(metrics_path) as f:
+                        mj = json.load(f)
+                    threshold = mj.get("best_threshold") or mj.get("threshold") or 0.5
+                else:
+                    threshold = 0.5
+            except Exception:
+                threshold = 0.5
+        threshold = float(threshold)
 
-        logger.info(f"Loading {disease} segmentor: arch={arch}, encoder={encoder}, size={img_size}")
+        logger.info(f"Loading {disease} segmentor: arch={arch}, encoder={encoder}, size={img_size}, threshold={threshold}")
 
         if arch == "tanet":
             from app.models.tanet import TANet
@@ -216,8 +231,9 @@ class DiseaseSegmentor:
             "mean": mean,
             "std": std,
             "arch": arch,
+            "threshold": threshold,
         }
-        logger.info(f"Loaded segmentor for {disease}: arch={arch}")
+        logger.info(f"Loaded segmentor for {disease}: arch={arch}, threshold={threshold}")
 
     @torch.no_grad()
     def predict(self, image: Image.Image, disease: str, original_size: tuple = None) -> dict:
@@ -243,8 +259,8 @@ class DiseaseSegmentor:
         if output.shape[-1] != img_size:
             output = F.interpolate(output, size=(img_size, img_size), mode="bilinear", align_corners=False)
         mask = torch.sigmoid(output).squeeze().cpu().numpy()
-
-        binary_mask = (mask > 0.5).astype(np.uint8)
+        thresh = entry.get("threshold", 0.5)
+        binary_mask = (mask > thresh).astype(np.uint8)
         binary_mask_resized = cv2.resize(binary_mask, original_size, interpolation=cv2.INTER_NEAREST)
 
         contours, _ = cv2.findContours(binary_mask_resized, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

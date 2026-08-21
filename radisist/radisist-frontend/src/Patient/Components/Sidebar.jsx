@@ -67,7 +67,7 @@ function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`bg-[#7d1f3f] fixed lg:sticky top-0 left-0 h-screen w-[260px] lg:w-[280px]
+        className={`bg-[#7d1f3f] fixed lg:sticky top-0 left-0 h-screen w-[260px] lg:w-[260px]
         flex flex-col py-8 text-white
         transition-all duration-300 z-40
         ${isOpen

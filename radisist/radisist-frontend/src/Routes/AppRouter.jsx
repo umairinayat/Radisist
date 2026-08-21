@@ -77,13 +77,9 @@ const router = createBrowserRouter([
     path: "/radiologist",
     element: <ProtectedRoute allowedRole="RADIOLOGIST" />,
     children: [
-      {
-        path: "",
-        element: <DashboardLayout />,
-        children: [
-          { index: true, element: <RadDashboard /> },
-        ]
-      }
+      { index: true, element: <DashboardLayout /> },
+      { path: "upload", element: <Upload /> },
+      { path: "analyzed", element: <Analyzed /> },
     ]
   },
 
@@ -97,6 +93,10 @@ function DashboardRedirect() {
   const role = localStorage.getItem("role");
   if (role === "PATIENT") return <Navigate to="/userdashboard" replace />;
   if (role === "RADIOLOGIST") return <Navigate to="/radiologist" replace />;
+  if (role === "ADMIN") {
+    window.location.href = "/admin/";
+    return null;
+  }
   return <Navigate to="/login" replace />;
 }
 

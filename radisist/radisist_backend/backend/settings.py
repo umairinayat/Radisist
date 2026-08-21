@@ -165,10 +165,9 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# AI Service Configuration
-AI_SERVICE_URL = os.getenv(
-    "AI_SERVICE_URL", "https://huggingface.co/spaces/example/radiology-ai"
-)  # Update with actual URL
+# AI Service Configuration - Remote GPU API (ngrok)
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "")
+AI_SERVICE_TIMEOUT = int(os.getenv("AI_SERVICE_TIMEOUT", "120"))
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")

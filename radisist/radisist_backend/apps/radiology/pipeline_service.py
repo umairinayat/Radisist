@@ -57,15 +57,37 @@ def ensure_pipeline_ready():
 
 def _map_remote_routing(data, file_bytes):
     routing = data.get("routing") or {}
-    modality = routing.get("modality") or routing.get("modality_name") or "Unknown"
+    raw_modality = routing.get("modality") or routing.get("modality_name") or "Unknown"
     confidence = routing.get("confidence", 0.9)
     disease = routing.get("disease") or routing.get("disease_model")
-    try:
-        idx = ROUTER_CLASSES.index(modality) if modality in ROUTER_CLASSES else 0
-        if modality.lower() == "x-ray":
-            idx = ROUTER_CLASSES.index("X-Ray") if "X-Ray" in ROUTER_CLASSES else 2
-    except Exception:
-        idx = 0
+    norm = raw_modality.strip().lower()
+    if norm in ("unknown", "unsupported", "ambiguous"):
+        return {
+            "modality": "Unknown",
+            "modality_index": -1,
+            "confidence": confidence,
+            "disease": None,
+            "disease_models": [],
+            "top3": routing.get("top3", []),
+        }
+    if raw_modality in ROUTER_CLASSES:
+        modality = raw_modality
+        idx = ROUTER_CLASSES.index(modality)
+    elif norm == "x-ray":
+        modality = "X-Ray"
+        idx = ROUTER_CLASSES.index("X-Ray") if "X-Ray" in ROUTER_CLASSES else 2
+    else:
+        modality = raw_modality
+        idx = ROUTER_CLASSES.index(modality) if modality in ROUTER_CLASSES else -1
+        if idx == -1:
+            return {
+                "modality": "Unknown",
+                "modality_index": -1,
+                "confidence": confidence,
+                "disease": None,
+                "disease_models": [],
+                "top3": routing.get("top3", []),
+            }
     return {
         "modality": modality,
         "modality_index": idx,

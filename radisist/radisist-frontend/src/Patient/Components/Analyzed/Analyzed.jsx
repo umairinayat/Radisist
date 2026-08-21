@@ -24,7 +24,7 @@ import ImageExpandModal from "../ImageExpandModal";
 import { savePipelineCrop } from "../../../api/pipeline";
 import { requestScanReview } from "../../../api/scans";
 
-const tabs = [
+const allTabs = [
   { id: "analysis", label: "Analysis", icon: BrainCircuit },
   { id: "explanation", label: "Explanation", icon: Sparkles },
   { id: "report", label: "Report", icon: FileText },
@@ -179,7 +179,10 @@ export default function Analyzed() {
   const location = useLocation();
   const navigate = useNavigate();
   const [scanData, setScanData] = useState(location.state?.scanData || null);
-  const [activeTab, setActiveTab] = useState("analysis");
+  const role = localStorage.getItem("role");
+  const isPatient = role === "PATIENT";
+  const tabs = isPatient ? allTabs.filter((t) => t.id === "report") : allTabs;
+  const [activeTab, setActiveTab] = useState(isPatient ? "report" : "analysis");
   const [activeFindingIndex, setActiveFindingIndex] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [cropSaving, setCropSaving] = useState(false);
@@ -188,6 +191,10 @@ export default function Analyzed() {
   useEffect(() => {
     setScanData(location.state?.scanData || null);
   }, [location.state]);
+
+  useEffect(() => {
+    if (isPatient && activeTab !== "report") setActiveTab("report");
+  }, [isPatient, activeTab]);
 
   const handleRequestReview = async () => {
     if (!scanData?.id) return;
@@ -467,7 +474,7 @@ export default function Analyzed() {
           </div>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-fade-in">
+        <div className={`grid gap-4 sm:grid-cols-2 ${isPatient ? "lg:grid-cols-4" : "lg:grid-cols-5"} animate-fade-in`}>
           <div className="rounded-[1.5rem] bg-[#fcfbfd] p-5">
             <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-400">Detected Modality</p>
             <p className="mt-3 text-xl font-bold text-[#7d1f3f]">{scanData.routed_modality || "Not stored"}</p>
@@ -488,10 +495,12 @@ export default function Analyzed() {
               {needsReview ? "Required" : "Not Required"}
             </p>
           </div>
-          <div className="rounded-[1.5rem] bg-[#7d1f3f] p-5 text-white">
-            <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/70">AI Confidence</p>
-            <p className="mt-3 text-2xl font-black">{formatPercent(scanData.ai_confidence)}</p>
-          </div>
+          {!isPatient && (
+            <div className="rounded-[1.5rem] bg-[#7d1f3f] p-5 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/70">AI Confidence</p>
+              <p className="mt-3 text-2xl font-black">{formatPercent(scanData.ai_confidence)}</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -643,38 +652,42 @@ export default function Analyzed() {
             )}
           </div>
 
-          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-            <div className="flex items-center gap-2 text-[#7d1f3f]">
-              <Layers3 size={18} />
-              <p className="text-sm font-bold uppercase tracking-[0.2em]">Segmentation</p>
-            </div>
-            {segmentationSrc ? (
-              <img src={segmentationSrc} alt="Segmentation overlay" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
-            ) : (
-              <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No segmentation overlay is available for this scan.</div>
-            )}
-          </div>
-
-          <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-            <div className="flex items-center gap-2 text-[#7d1f3f]">
-              <Eye size={18} />
-              <p className="text-sm font-bold uppercase tracking-[0.2em]">Heatmap</p>
-            </div>
-            {heatmapSrc ? (
-              <img src={heatmapSrc} alt="Grad-CAM heatmap" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
-            ) : (
-              <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No heatmap was returned for this scan.</div>
-            )}
-
-            {activeFinding && (
-              <div className="mt-5 rounded-[1.5rem] bg-[#f8eff3] px-5 py-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-[#7d1f3f]">
-                  <ScanSearch size={16} /> Active Finding
-                </div>
-                <p className="mt-2 text-sm leading-6 text-gray-700">{activeFinding.finding || activeFinding.text}</p>
+          {!isPatient && (
+            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <div className="flex items-center gap-2 text-[#7d1f3f]">
+                <Layers3 size={18} />
+                <p className="text-sm font-bold uppercase tracking-[0.2em]">Segmentation</p>
               </div>
-            )}
-          </div>
+              {segmentationSrc ? (
+                <img src={segmentationSrc} alt="Segmentation overlay" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
+              ) : (
+                <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No segmentation overlay is available for this scan.</div>
+              )}
+            </div>
+          )}
+
+          {!isPatient && (
+            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+              <div className="flex items-center gap-2 text-[#7d1f3f]">
+                <Eye size={18} />
+                <p className="text-sm font-bold uppercase tracking-[0.2em]">Heatmap</p>
+              </div>
+              {heatmapSrc ? (
+                <img src={heatmapSrc} alt="Grad-CAM heatmap" className="mt-5 w-full rounded-[1.5rem] border border-gray-100 object-cover" />
+              ) : (
+                <div className="mt-5 rounded-[1.5rem] bg-[#fcfbfd] px-5 py-8 text-sm text-gray-500">No heatmap was returned for this scan.</div>
+              )}
+
+              {activeFinding && (
+                <div className="mt-5 rounded-[1.5rem] bg-[#f8eff3] px-5 py-4">
+                  <div className="flex items-center gap-2 text-sm font-bold text-[#7d1f3f]">
+                    <ScanSearch size={16} /> Active Finding
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-gray-700">{activeFinding.finding || activeFinding.text}</p>
+                </div>
+              )}
+            </div>
+          )}
         </aside>
       </div>
 

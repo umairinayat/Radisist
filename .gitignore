@@ -50,3 +50,11 @@ Thumbs.db
 .cache/
 /root/fyp/frontend-7005.log
 /root/fyp/radisist-7004.log
+
+# Django SQLite database (runtime, do not commit)
+/radisist/radisist_backend/db.sqlite3
+/radisist/radisist_backend/db.sqlite3-shm
+/radisist/radisist_backend/db.sqlite3-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal

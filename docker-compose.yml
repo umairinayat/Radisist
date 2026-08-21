@@ -7,6 +7,8 @@ services:
     environment:
       DATABASE_URL: sqlite:////workspace/radisist/radisist_backend/db.sqlite3
       DEBUG: "true"
+      USE_TANET: "true"
+      TANET_ENCODER: "resnet34"
     command: sh -c "python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:7400"
     ports:
       - "7400:7400"

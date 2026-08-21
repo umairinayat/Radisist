@@ -1,0 +1,44 @@
+{% extends "cpanel/base.html" %}
+{% block title %}Deploy · Radisist cPanel{% endblock %}
+{% block header %}Deploy{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="bg-white rounded-lg shadow p-5 lg:col-span-1">
+    <h2 class="font-semibold mb-3">One-click redeploy</h2>
+    <p class="text-sm text-slate-600 mb-4">Runs: <span class="mono text-xs">git pull → npm ci → npm run build → sync webroot → migrate → restart</span></p>
+    {% if status.running %}
+      <div class="px-3 py-2 bg-amber-100 text-amber-800 text-sm rounded mb-3">A redeploy is currently running…</div>
+      <form method="post" action="{% url 'cpanel:deploy_clear_lock' %}">
+        {% csrf_token %}
+        <button class="px-3 py-1.5 text-sm bg-slate-200 rounded hover:bg-slate-300">Clear stuck lock</button>
+      </form>
+    {% else %}
+      <form method="post" action="{% url 'cpanel:deploy_run' %}">
+        {% csrf_token %}
+        <button class="px-4 py-2 bg-brand-600 text-white rounded hover:bg-brand-700" onclick="return confirm('Run a full redeploy now?')">Deploy now</button>
+      </form>
+    {% endif %}
+    <div class="mt-5">
+      <a href="{% url 'cpanel:deploy_tail' %}" target="_blank" class="text-xs text-brand-600 hover:underline">open raw log →</a>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-5 lg:col-span-1">
+    <h2 class="font-semibold mb-3">Git</h2>
+    <div class="text-sm space-y-1">
+      <div><span class="text-slate-500">branch:</span> <span class="mono">{{ git.branch }}</span></div>
+      <div><span class="text-slate-500">HEAD:</span> <span class="mono">{{ git.head }}</span></div>
+      <div><span class="text-slate-500">ahead/behind:</span> <span class="mono">{{ git.ahead_behind }}</span></div>
+    </div>
+    <pre class="mono text-xs bg-slate-900 text-slate-100 p-3 rounded mt-3 overflow-x-auto">{{ git.status }}</pre>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-5 lg:col-span-3">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold">Recent log</h2>
+      <button onclick="location.reload()" class="text-xs text-brand-600 hover:underline">refresh</button>
+    </div>
+    <pre class="mono text-xs bg-slate-900 text-slate-100 p-4 rounded h-96 overflow-auto">{{ status.tail|default:"(no deploy log yet)" }}</pre>
+  </div>
+</div>
+{% endblock %}

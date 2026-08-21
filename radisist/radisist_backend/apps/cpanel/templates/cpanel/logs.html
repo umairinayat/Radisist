@@ -1,0 +1,28 @@
+{% extends "cpanel/base.html" %}
+{% block title %}Logs · Radisist cPanel{% endblock %}
+{% block header %}Logs{% endblock %}
+{% block content %}
+<div class="bg-white rounded-lg shadow p-5">
+  <form method="get" class="flex flex-wrap items-end gap-3 mb-4">
+    <div>
+      <label class="block text-xs text-slate-500 mb-1">Log</label>
+      <select name="log" class="border rounded px-2 py-1.5 text-sm">
+        {% for l in logs %}
+        <option value="{{ l }}" {% if l == selected %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs text-slate-500 mb-1">Lines</label>
+      <input type="number" name="lines" value="{{ lines }}" min="50" max="5000" step="50" class="border rounded px-2 py-1.5 text-sm w-28" />
+    </div>
+    <button class="px-3 py-1.5 text-sm bg-brand-600 text-white rounded hover:bg-brand-700">Show</button>
+    <button type="button" onclick="location.reload()" class="px-3 py-1.5 text-sm bg-slate-200 rounded hover:bg-slate-300">Refresh</button>
+  </form>
+  {% if error %}
+    <div class="px-3 py-2 bg-red-100 text-red-700 rounded text-sm">{{ error }}</div>
+  {% else %}
+    <pre class="mono text-xs bg-slate-900 text-slate-100 p-4 rounded h-[600px] overflow-auto log">{{ content|default:"(empty)" }}</pre>
+  {% endif %}
+</div>
+{% endblock %}

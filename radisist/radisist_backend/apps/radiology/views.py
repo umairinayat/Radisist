@@ -174,6 +174,14 @@ class IsRadiologist(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == User.RADIOLOGIST
 
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and (request.user.role == User.ADMIN or request.user.is_staff)
+
+class IsRadiologistOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return IsRadiologist().has_permission(request, view) or IsAdmin().has_permission(request, view)
+
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer
@@ -252,7 +260,7 @@ class ScanViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(scan)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsRadiologist], url_path='accept-case')
+    @action(detail=True, methods=['post'], permission_classes=[IsRadiologistOrAdmin], url_path='accept-case')
     def accept_case(self, request, pk=None):
         scan = self.get_object()
         radiologist = request.user.radiologist
@@ -319,7 +327,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsRadiologist()]
+            return [IsRadiologistOrAdmin()]
         return super().get_permissions()
 
     def perform_create(self, serializer):
@@ -331,7 +339,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             kwargs["radiologist"] = self.request.user.radiologist
         serializer.save(**kwargs)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsRadiologist])
+    @action(detail=True, methods=['post'], permission_classes=[IsRadiologistOrAdmin])
     def finalize(self, request, pk=None):
         report = self.get_object()
         radiologist = request.user.radiologist
@@ -368,7 +376,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
         return Response(self.get_serializer(report).data)
 
-    @action(detail=True, methods=['get'], permission_classes=[IsRadiologist], url_path='export-pdf')
+    @action(detail=True, methods=['get'], permission_classes=[IsRadiologistOrAdmin], url_path='export-pdf')
     def export_pdf(self, request, pk=None):
         report = self.get_object()
         if not report.is_final:

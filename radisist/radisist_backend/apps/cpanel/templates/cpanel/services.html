@@ -1,0 +1,43 @@
+{% extends "cpanel/base.html" %}
+{% block title %}Services · Radisist cPanel{% endblock %}
+{% block header %}Services{% endblock %}
+{% block content %}
+<div class="space-y-4">
+  {% for s in services %}
+  <div class="bg-white rounded-lg shadow p-5">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2.5 h-2.5 rounded-full {% if s.is_active %}bg-green-500{% else %}bg-red-500{% endif %}"></span>
+          <span class="font-semibold">{{ s.name }}</span>
+          <span class="text-xs px-2 py-0.5 rounded {% if s.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">{{ s.state }} / {{ s.sub_state }}</span>
+        </div>
+        <div class="text-xs text-slate-500 mt-1">{{ s.description }}</div>
+        <div class="text-xs text-slate-400 mt-1">PID {{ s.main_pid|default:"—" }} · memory {{ s.memory }} · since {{ s.active_since }}</div>
+      </div>
+      <div class="flex gap-2">
+        <form method="post" action="{% url 'cpanel:service_action' s.name 'restart' %}">
+          {% csrf_token %}
+          <button class="px-3 py-1.5 text-sm bg-brand-600 text-white rounded hover:bg-brand-700">Restart</button>
+        </form>
+        <form method="post" action="{% url 'cpanel:service_action' s.name 'reload' %}">
+          {% csrf_token %}
+          <button class="px-3 py-1.5 text-sm bg-slate-200 text-slate-700 rounded hover:bg-slate-300">Reload</button>
+        </form>
+        {% if s.is_active %}
+        <form method="post" action="{% url 'cpanel:service_action' s.name 'stop' %}">
+          {% csrf_token %}
+          <button class="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200">Stop</button>
+        </form>
+        {% else %}
+        <form method="post" action="{% url 'cpanel:service_action' s.name 'start' %}">
+          {% csrf_token %}
+          <button class="px-3 py-1.5 text-sm bg-green-600 text-white rounded hover:bg-green-700">Start</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

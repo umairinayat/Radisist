@@ -8,7 +8,7 @@ import torch.nn.functional as F
 import segmentation_models_pytorch as smp
 from PIL import Image
 
-from app.config import MODELS_DIR, DEVICE
+from app.config import MODELS_DIR, DEVICE, USE_TANET, TANET_ENCODER, SEGMENTOR_ARCH
 
 logger = logging.getLogger(__name__)
 
@@ -71,18 +71,23 @@ class SegFormerBinary(nn.Module):
 def _detect_seg_arch(checkpoint: dict, state: dict) -> tuple[str, str]:
     """Return (arch, encoder) inferred from checkpoint metadata or state keys."""
     arch = (checkpoint.get("arch") or checkpoint.get("architecture") or "").lower()
+    if arch == "tanet":
+        return "tanet", checkpoint.get("encoder") or TANET_ENCODER
     if arch.startswith("segformer"):
         return arch, ""
     encoder = checkpoint.get("encoder") or checkpoint.get("encoder_name") or ""
     if arch == "smp_unet":
         return "smp_unet", encoder or "efficientnet-b0"
     if arch.startswith("smp_unetplusplus") or arch == "unetplusplus" or not arch:
-        # Legacy checkpoints had architecture="smp_unetplusplus" without encoder info
+        if USE_TANET and not arch:
+            if any(k.startswith("tabs.") or k.startswith("backbone.") for k in state.keys()):
+                return "tanet", TANET_ENCODER
         return "smp_unetplusplus", encoder or _detect_smp_encoder(state)
     if not arch:
-        # Fall back to key inspection
         if any(k.startswith("segformer.encoder.") for k in state.keys()):
             return "segformer_b3", ""
+        if any(k.startswith("tabs.") for k in state.keys()):
+            return "tanet", TANET_ENCODER
         return "smp_unetplusplus", _detect_smp_encoder(state)
     return arch, encoder
 
@@ -123,7 +128,12 @@ class DiseaseSegmentor:
         if disease in self.loaded_models:
             return
 
-        checkpoint_path = MODELS_DIR / "disease_models" / disease / "segmentation" / "best_segmenter.pt"
+        tanet_path = MODELS_DIR / "disease_models" / disease / "segmentation" / "best_tanet.pt"
+        legacy_path = MODELS_DIR / "disease_models" / disease / "segmentation" / "best_segmenter.pt"
+        if USE_TANET and tanet_path.exists():
+            checkpoint_path = tanet_path
+        else:
+            checkpoint_path = legacy_path
         if not checkpoint_path.exists():
             raise FileNotFoundError(f"Segmentation checkpoint not found: {checkpoint_path}")
 
@@ -131,6 +141,12 @@ class DiseaseSegmentor:
         model_state = checkpoint.get("model_state_dict", checkpoint.get("model_state", checkpoint))
 
         arch, encoder = _detect_seg_arch(checkpoint, model_state)
+        if USE_TANET and arch != "tanet" and tanet_path.exists():
+            arch = "tanet"
+            encoder = TANET_ENCODER
+        elif USE_TANET and arch == "smp_unetplusplus":
+            arch = "tanet"
+            encoder = TANET_ENCODER
         img_size = checkpoint.get("img_size", 256)
         mean = checkpoint.get("normalization_mean")
         std = checkpoint.get("normalization_std")
@@ -139,7 +155,19 @@ class DiseaseSegmentor:
 
         logger.info(f"Loading {disease} segmentor: arch={arch}, encoder={encoder}, size={img_size}")
 
-        if arch.startswith("segformer"):
+        if arch == "tanet":
+            from app.models.tanet import TANet
+            model = TANet(encoder_name=encoder, in_channels=3, classes=1)
+            try:
+                model.load_state_dict(model_state, strict=False)
+            except Exception:
+                try:
+                    backbone_state = {k.replace("backbone.", ""): v for k, v in model_state.items() if k.startswith("backbone.")}
+                    if backbone_state:
+                        model.backbone.load_state_dict(backbone_state, strict=False)
+                except Exception:
+                    pass
+        elif arch.startswith("segformer"):
             model = SegFormerBinary(arch)
             model.load_state_dict(model_state, strict=False)
         elif arch == "smp_unet":
@@ -150,7 +178,7 @@ class DiseaseSegmentor:
                 classes=1,
             )
             model.load_state_dict(model_state, strict=False)
-        else:  # smp_unetplusplus (default)
+        else:
             try:
                 model = smp.UnetPlusPlus(
                     encoder_name=encoder,

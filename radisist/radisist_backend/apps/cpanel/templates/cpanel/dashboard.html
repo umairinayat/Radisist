@@ -1,0 +1,51 @@
+{% extends "cpanel/base.html" %}
+{% block title %}Dashboard · Radisist cPanel{% endblock %}
+{% block header %}Dashboard{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <section class="bg-white rounded-lg shadow p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold">Services</h2>
+      <a href="{% url 'cpanel:services' %}" class="text-xs text-brand-600 hover:underline">manage →</a>
+    </div>
+    <div class="space-y-2">
+      {% for s in services %}
+      <div class="flex items-center justify-between text-sm py-1.5 border-b last:border-0">
+        <div>
+          <span class="inline-block w-2 h-2 rounded-full mr-2 {% if s.is_active %}bg-green-500{% else %}bg-red-500{% endif %}"></span>
+          <span class="font-medium">{{ s.name }}</span>
+        </div>
+        <span class="text-xs {% if s.is_active %}text-green-600{% else %}text-red-600{% endif %}">{{ s.state }} · {{ s.memory }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="bg-white rounded-lg shadow p-5">
+    <h2 class="font-semibold mb-3">Quick stats</h2>
+    <div class="grid grid-cols-3 gap-4 text-center">
+      <div><div class="text-2xl font-bold">{{ user_count }}</div><div class="text-xs text-slate-500">Users</div></div>
+      <div><div class="text-2xl font-bold">{{ scan_count }}</div><div class="text-xs text-slate-500">Scans</div></div>
+      <div><div class="text-2xl font-bold">{{ recent_backups|length }}</div><div class="text-xs text-slate-500">Backups</div></div>
+    </div>
+    <h2 class="font-semibold mt-5 mb-2 text-sm">Git</h2>
+    <pre class="mono text-xs bg-slate-900 text-slate-100 p-3 rounded">{{ git.recent }}</pre>
+  </section>
+</div>
+
+<section class="bg-white rounded-lg shadow p-5 mt-6">
+  <h2 class="font-semibold mb-3">Listening ports</h2>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-left text-xs uppercase text-slate-500">
+        <tr><th class="py-1 pr-4">Address</th><th class="py-1 pr-4">Port</th><th class="py-1">Process</th></tr>
+      </thead>
+      <tbody>
+        {% for p in metrics.listening_ports %}
+        <tr class="border-t"><td class="py-1.5 pr-4 mono">{{ p.addr }}</td><td class="py-1.5 pr-4 mono">{{ p.port }}</td><td class="py-1.5 text-slate-600">{{ p.proc }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

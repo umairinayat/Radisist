@@ -32,6 +32,7 @@ urlpatterns = [
     path("api/auth/", include("djoser.urls.jwt")),
     path("api/radiology/", include("apps.radiology.urls")),
     path("api/auth/logout/", TokenBlacklistView.as_view(), name="token_blacklist"),
+    path("cpanel/", include("apps.cpanel.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

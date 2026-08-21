@@ -46,14 +46,17 @@ class ReportSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         request = self.context.get('request')
-        
-        # If user is a Patient (and not the radiologist/admin), hide the full content unless it's final?
-        # User requirement: "summarized report to user" (impression) and "full and editable report to radiologist" (content)
-        
         if request and hasattr(request.user, 'role') and request.user.role == 'PATIENT':
-            # Remove full content, only show impression (summary)
             representation.pop('content', None)
-        
+            representation.pop('provider', None)
+            representation.pop('report_error', None)
+            structured = representation.get('structured_report')
+            if isinstance(structured, dict):
+                representation['structured_report'] = {
+                    k: structured[k]
+                    for k in ('summary', 'disclaimer')
+                    if k in structured
+                } or None
         return representation
 
     def create(self, validated_data):
@@ -109,6 +112,41 @@ class ScanSerializer(serializers.ModelSerializer):
             'segmentation_result', 'segmentation_overlay_base64', 'xai_heatmap_base64', 'audit_trail',
             'analysis_metadata'
         ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+        if request and hasattr(request.user, 'role') and request.user.role == 'PATIENT':
+            for field in [
+                'routing_top3',
+                'classification_result',
+                'segmentation_result',
+                'segmentation_overlay_base64',
+                'xai_heatmap_base64',
+                'audit_trail',
+                'analysis_metadata',
+                'routing',
+                'classification',
+                'segmentation',
+                'segmentation_overlay',
+                'xai_heatmap',
+                'xai_error',
+                'report_provider',
+                'report_error',
+                'model_versions',
+                'patient_context',
+                'patient_summary_sent_at',
+                'ultrasound_options',
+                'image_quality',
+                'timestamp',
+                'total_latency_ms',
+                'ai_benign_prob',
+                'ai_malignant_prob',
+                'routed_confidence',
+                'original_image',
+            ]:
+                representation.pop(field, None)
+        return representation
 
     def create(self, validated_data):
         # Assign current user's patient profile if available

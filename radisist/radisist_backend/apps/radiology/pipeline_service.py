@@ -9,7 +9,7 @@ if str(PIPELINE_ROOT) not in sys.path:
     sys.path.insert(0, str(PIPELINE_ROOT))
 
 try:
-    from app.config import DISEASE_MODELS, MODALITY_TO_DISEASE, ROUTER_CLASSES  # noqa: E402
+    from app.config import DISEASE_MODELS, MODALITY_TO_DISEASE, ROUTER_CLASSES, USE_TANET, SEGMENTOR_ARCH, TANET_ENCODER  # noqa: E402
     from app.models.model_registry import download_all_models  # noqa: E402
     from app.models.router import router_instance  # noqa: E402
     from app.pipeline.orchestrator import analyze_image  # noqa: E402
@@ -106,8 +106,13 @@ def file_to_base64(file_path: str) -> str | None:
 
 
 def get_pipeline_models() -> dict:
+    segmentor_arch = SEGMENTOR_ARCH if _has_pipeline else "UNet++"
+    use_tanet = USE_TANET if _has_pipeline else False
     return {
         "router_classes": ROUTER_CLASSES,
+        "segmentor_arch": segmentor_arch,
+        "use_tanet": use_tanet,
+        "tanet_encoder": TANET_ENCODER if _has_pipeline else None,
         "disease_models": [
             {
                 "name": disease,

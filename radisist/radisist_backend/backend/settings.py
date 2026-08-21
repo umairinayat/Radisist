@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "djoser",
     "apps.radiology.apps.RadiologyConfig",
+    "apps.cpanel.apps.CpanelConfig",
 ]
 
 # Linking Default Auth Model to my Custom User Manager
@@ -79,6 +80,10 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "backend.urls"
+
+# Send @login_required views (e.g. the cPanel) to the Django admin login.
+LOGIN_URL = "/admin/login/"
+LOGIN_REDIRECT_URL = "/cpanel/"
 
 TEMPLATES = [
     {

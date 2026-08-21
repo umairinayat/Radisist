@@ -97,6 +97,10 @@ function DashboardRedirect() {
   const role = localStorage.getItem("role");
   if (role === "PATIENT") return <Navigate to="/userdashboard" replace />;
   if (role === "RADIOLOGIST") return <Navigate to="/radiologist" replace />;
+  if (role === "ADMIN") {
+    window.location.href = "/admin/";
+    return null;
+  }
   return <Navigate to="/login" replace />;
 }
 

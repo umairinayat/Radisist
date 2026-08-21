@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { Eye, EyeOff } from "lucide-react";
 import authimg from "./Images/authimg.png";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser, getUserProfile } from "../api/login";
@@ -14,6 +15,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,8 +74,10 @@ function Login() {
           navigate("/userdashboard/upload");
         } else if (role === "RADIOLOGIST") {
           navigate("/radiologist");
+        } else if (role === "ADMIN") {
+          window.location.href = "/admin/";
         } else {
-          navigate("/dashboard"); // Use the magic fallback route
+          navigate("/dashboard");
         }
       }, 1500);
 

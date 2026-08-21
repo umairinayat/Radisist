@@ -166,7 +166,7 @@ STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # AI Service Configuration - Remote GPU API (ngrok)
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "https://parentlike-hydroponically-rodney.ngrok-free.dev")
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "")
 AI_SERVICE_TIMEOUT = int(os.getenv("AI_SERVICE_TIMEOUT", "120"))
 
 MEDIA_URL = "/media/"
